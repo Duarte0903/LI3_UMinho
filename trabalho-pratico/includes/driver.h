@@ -21,7 +21,7 @@ char *get_driver_car_class(Driver driver);
 
 unsigned short get_driver_total_rides (Driver driver);
 
-float get_driver_average_rating (Driver driver);
+double get_driver_average_rating (Driver driver);
 
 unsigned short get_driver_latest_ride (Driver driver);
 

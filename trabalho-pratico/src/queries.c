@@ -20,11 +20,8 @@ void print_q1(char *input, Catalog catalog, int counter)
         output = get_user_q1(input, catalog);
     }
     FILE *results = fopen(file_path, "a");
-    if (output == NULL)
-    {
-        fprintf(results, "\n");
-    }
-    else
+    
+    if (output)
         fprintf(results, "%s\n", output);
 
     fclose(results);

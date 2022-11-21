@@ -17,7 +17,7 @@ typedef struct driver
     char *license_plate;
     char *city;
     unsigned short account_creation;
-    float average_rating;
+    double average_rating;
     unsigned short total_rides;
     unsigned short latest_ride;
     bool account_status;
@@ -95,7 +95,7 @@ unsigned short get_driver_total_rides (Driver driver)
     return driver->total_rides;
 }
 
-float get_driver_average_rating (Driver driver)
+double get_driver_average_rating (Driver driver)
 {
     return driver->average_rating;
 }
@@ -113,7 +113,7 @@ void set_driver_latest_ride (Driver driver, unsigned short new_latest_ride)
 
 void set_driver_average_rating (Driver driver, unsigned short driver_score)
 {
-    float new_driver_average_rating = (driver->average_rating * driver->total_rides + driver_score) / (driver->total_rides + 1);
+    double new_driver_average_rating = (driver->average_rating * driver->total_rides + driver_score) / (driver->total_rides + 1);
 
     driver->average_rating = new_driver_average_rating;
 }

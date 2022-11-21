@@ -126,11 +126,11 @@ static gint compare_driver_by_average_rating(gconstpointer d1, gconstpointer d2)
     Driver driver1 = *(Driver *)d1;
     Driver driver2 = *(Driver *)d2;
 
-    float average_rating1 = get_driver_average_rating(driver1);
+    double average_rating1 = get_driver_average_rating(driver1);
     unsigned short date1 = get_driver_latest_ride(driver1);
     char *driver_id1 = get_driver_id(driver1);
 
-    float average_rating2 = get_driver_average_rating(driver2);
+    double average_rating2 = get_driver_average_rating(driver2);
     unsigned short date2 = get_driver_latest_ride(driver2);
     char *driver_id2 = get_driver_id(driver2);
 
