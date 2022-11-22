@@ -34,7 +34,7 @@ void parse_file(char *filename, int n_fields, void (*function_ptr)(char **, Cata
     size_t len = 0;
     ssize_t nread; /* number of characters read, including the delimiter character */
 
-    (void)getline(&line, &len, fptr); // 1st line is disposable, using void cast to omit compiler warning
+    nread = getline(&line, &len, fptr); // 1st line is disposable
 
     while ((nread = getline(&line, &len, fptr)) != -1)
     {

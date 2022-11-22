@@ -55,12 +55,12 @@ void set_stats(Ride ride, Catalog catalog)
     set_user_latest_ride(user, date);
 
 
-
     unsigned short driver_score = get_ride_driver_score(ride);
     char *driver_id = get_ride_driver_id(ride);
     Driver driver = g_hash_table_lookup(catalog->drivers_ht, driver_id);
 
     set_driver_average_rating(driver, driver_score);
+    set_driver_latest_ride(driver, date);
     set_driver_total_rides(driver);
 
     free(username);
@@ -126,11 +126,11 @@ static gint compare_driver_by_average_rating(gconstpointer d1, gconstpointer d2)
     Driver driver1 = *(Driver *)d1;
     Driver driver2 = *(Driver *)d2;
 
-    double average_rating1 = get_driver_average_rating(driver1);
+    float average_rating1 = get_driver_average_rating(driver1);
     unsigned short date1 = get_driver_latest_ride(driver1);
     char *driver_id1 = get_driver_id(driver1);
 
-    double average_rating2 = get_driver_average_rating(driver2);
+    float average_rating2 = get_driver_average_rating(driver2);
     unsigned short date2 = get_driver_latest_ride(driver2);
     char *driver_id2 = get_driver_id(driver2);
 
@@ -169,7 +169,7 @@ char *get_q2(int index, Catalog catalog)
 
     char *driver_id = get_driver_id(driver);
     char *name = get_driver_name(driver);
-    double average_rating = get_driver_average_rating(driver);
+    double average_rating = get_driver_average_rating(driver); // cast to double for compatibility with sprintf
 
     char *result = malloc(strlen(driver_id) + strlen(name) + 5 + 2 + 1);
     sprintf(result, "%s;%s;%0.3f", driver_id, name, average_rating);
