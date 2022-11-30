@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <curses.h>
+#include <ncurses.h>
 #include <unistd.h>
 #include "../includes/parser.h"
 #include "../includes/utils.h"
 #include "../includes/catalog.h"
+
+#define _XOPEN_SOURCE_EXTENDED
 
 #define N_USER_FIELDS 7
 #define N_DRIVER_FIELDS 9
