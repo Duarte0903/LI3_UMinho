@@ -25,7 +25,7 @@ HEADERS = $(call rwildcard,includes,*.h)
 OBJS = $(SRCS:src/%.c=$(OBJ_DIR)/%.o) #$(SRCS:.c=.o)
 
 # Other stuff to compile with
-LIBS = -lm -lglib-2.0
+LIBS = -lm -lglib-2.0 -lncurses
 INCLUDES = -Iincludes
 PKG_CONFIG = `pkg-config --cflags --libs glib-2.0`
 TARGET = programa-principal
