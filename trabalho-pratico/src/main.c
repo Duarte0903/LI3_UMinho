@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <curses.h>
+#include <unistd.h>
 #include "../includes/parser.h"
 #include "../includes/utils.h"
 #include "../includes/catalog.h"
@@ -44,6 +45,7 @@ int main(int argc, char **argv)
     initscr();                 /* Start curses mode           */
     printw("Hello World !!!"); /* Print Hello World          */
     refresh();                 /* Print it on to the real screen */
+    sleep(4);
     endwin();                  /* End curses mode          */
     return 0;
 }
