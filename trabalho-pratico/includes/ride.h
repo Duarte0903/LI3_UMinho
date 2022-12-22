@@ -21,7 +21,7 @@ unsigned short get_ride_driver_score(Ride ride);
 
 unsigned short get_ride_distance(Ride ride);
 
-double get_ride_tip(Ride ride);
+float get_ride_tip(Ride ride);
 
 void print_ride(Ride ride);
 

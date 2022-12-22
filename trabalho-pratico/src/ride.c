@@ -1,13 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "../includes/catalog.h"
 #include "../includes/ride.h"
 #include "../includes/date.h"
 #include "../includes/utils.h"
 
-typedef struct ride
-{
+typedef struct ride {
     char *id;
     unsigned short date;
     char *driver_id;
@@ -18,10 +16,9 @@ typedef struct ride
     unsigned short score_driver;
     float tip;
     char *comment; /* informação inútil ? */
-} * Ride;
+} *Ride;
 
-Ride init_ride()
-{
+Ride init_ride() {
     Ride ride = malloc(sizeof(struct ride));
 
     ride->id = NULL;
@@ -33,8 +30,7 @@ Ride init_ride()
     return ride;
 }
 
-Ride create_ride(char **fields)
-{
+Ride create_ride(char **fields) {
     Ride ride = init_ride();
 
     ride->id = strdup(fields[0]);
@@ -55,38 +51,35 @@ unsigned short get_ride_date(Ride ride) {
     return ride->date;
 }
 
-char *get_ride_driver_id(Ride ride)
-{
+char *get_ride_driver_id(Ride ride) {
     return strdup(ride->driver_id);
 }
 
-char *get_ride_user(Ride ride)
-{
+char *get_ride_user(Ride ride) {
     return strdup(ride->user);
 }
 
-unsigned short get_ride_user_score(Ride ride)
-{
+unsigned short get_ride_user_score(Ride ride) {
     return ride->score_user;
 }
 
-unsigned short get_ride_driver_score(Ride ride)
-{
+unsigned short get_ride_driver_score(Ride ride) {
     return ride->score_driver;
 }
 
-unsigned short get_ride_distance(Ride ride)
-{
+unsigned short get_ride_distance(Ride ride) {
     return ride->distance;
 }
 
-double get_ride_tip(Ride ride)
-{
+float get_ride_tip(Ride ride) {
     return ride->tip;
 }
 
-void free_ride(Ride ride)
-{
+unsigned short get_ride_score_driver (Ride ride) {
+    return ride->score_driver;
+}
+
+void free_ride(Ride ride) {
     free(ride->id);
     free(ride->driver_id);
     free(ride->user);
@@ -95,14 +88,8 @@ void free_ride(Ride ride)
     free(ride);
 }
 
-unsigned short get_ride_score_driver (Ride ride)
-{
-    return ride->score_driver;
-}
-
 // For debug purposes
-void print_ride(Ride ride)
-{
+void print_ride(Ride ride) {
     char *date = int_to_date(ride->date);
     char distance[5];
     char score_user[2];
