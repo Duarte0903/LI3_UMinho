@@ -2,13 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "../includes/catalog.h"
 #include "../includes/driver.h"
 #include "../includes/date.h"
 #include "../includes/utils.h"
 
-typedef struct driver
-{
+typedef struct driver {
     char *id;
     char *name;
     unsigned short birth_date;
@@ -17,14 +15,17 @@ typedef struct driver
     char *license_plate;
     char *city;
     unsigned short account_creation;
-    float average_rating;
-    unsigned short total_rides;
-    unsigned short latest_ride;
     bool account_status;
-} * Driver;
 
-Driver init_driver()
-{
+    struct driver_stats {
+        float average_rating;
+        unsigned short total_rides;
+        float total_earned_money;        
+        unsigned short latest_ride;
+    } stats;
+} *Driver;
+
+Driver init_driver() {
     Driver driver = malloc(sizeof(struct driver));
 
     driver->id = NULL;
@@ -34,15 +35,15 @@ Driver init_driver()
     driver->license_plate = NULL;
     driver->city = NULL;
     driver->account_status = true;
-    driver->average_rating = 0.0;
-    driver->total_rides = 0;
-    driver->latest_ride = 0;
+    driver->stats.average_rating = 0.0;
+    driver->stats.total_rides = 0;
+    driver->stats.total_earned_money = 0.0;
+    driver->stats.latest_ride = 0;
 
     return driver;
 }
 
-Driver create_driver(char **fields)
-{
+Driver create_driver(char **fields) {
     Driver driver = init_driver();
 
     driver->id = strdup(fields[0]);
@@ -60,71 +61,62 @@ Driver create_driver(char **fields)
     return driver;
 }
 
-char *get_driver_id(Driver driver)
-{
+char *get_driver_id(Driver driver) {
     return strdup(driver->id);
 }
 
-char *get_driver_name(Driver driver)
-{
+char *get_driver_name(Driver driver) {
     return strdup(driver->name);
 }
 
-char *get_driver_gender(Driver driver)
-{
-    return strdup(driver->gender);
-}
-
-char *get_driver_age(Driver driver)
-{
+char *get_driver_age(Driver driver) {
     return get_age(driver->birth_date);
 }
 
-char *get_driver_car_class(Driver driver)
-{
+char *get_driver_gender(Driver driver) {
+    return strdup(driver->gender);
+}
+
+char *get_driver_car_class(Driver driver) {
     return strdup(driver->car_class);
 }
 
-bool get_driver_account_status(Driver driver)
-{
+bool get_driver_account_status(Driver driver) {
     return driver->account_status;
 }
 
-unsigned short get_driver_total_rides(Driver driver)
-{
-    return driver->total_rides;
+float get_driver_average_rating(Driver driver) {
+    return driver->stats.average_rating;
 }
 
-float get_driver_average_rating(Driver driver)
-{
-    return driver->average_rating;
+unsigned short get_driver_total_rides(Driver driver) {
+    return driver->stats.total_rides;
 }
 
-unsigned short get_driver_latest_ride(Driver driver)
-{
-    return driver->latest_ride;
+float get_driver_total_earned_money(Driver driver) {
+    return driver->stats.total_earned_money;
 }
 
-void set_driver_latest_ride(Driver driver, unsigned short new_latest_ride)
-{
-    if (driver->latest_ride < new_latest_ride)
-        driver->latest_ride = new_latest_ride;
+unsigned short get_driver_latest_ride(Driver driver) {
+    return driver->stats.latest_ride;
 }
 
-void set_driver_average_rating (Driver driver, unsigned short driver_score)
-{
-    float new_driver_average_rating = (driver->average_rating * driver->total_rides + driver_score) / (driver->total_rides + 1);
+void set_driver_stats(Driver driver, void **stats) {
+    unsigned short driver_score = *(unsigned short *)stats[0];
+    float new_average_rating = (driver->stats.average_rating * driver->stats.total_rides + driver_score) / (driver->stats.total_rides + 1);
+    driver->stats.average_rating = new_average_rating;
 
-    driver->average_rating = new_driver_average_rating;
+    driver->stats.total_rides++;
+
+    float ride_cost_w_tip = *(float *)stats[1];
+    driver->stats.total_earned_money += ride_cost_w_tip;
+
+    unsigned short ride_date = *(unsigned short *)stats[2];
+    if (driver->stats.latest_ride < ride_date) 
+        driver->stats.latest_ride = ride_date;
 }
 
-void set_driver_total_rides (Driver driver)
-{
-    driver->total_rides++;
-}
-
-void free_driver(Driver driver)
-{
+void free_driver(Driver driver) {
     free(driver->id);
     free(driver->name);
     free(driver->gender);
@@ -135,8 +127,7 @@ void free_driver(Driver driver)
 }
 
 // For debug purposes
-void print_driver(Driver driver)
-{
+void print_driver(Driver driver) {
     char *birth_date = int_to_date(driver->birth_date);
     char *account_creation = int_to_date(driver->account_creation);
     char *account_status;
