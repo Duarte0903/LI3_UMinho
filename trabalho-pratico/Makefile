@@ -28,7 +28,8 @@ OBJS = $(SRCS:src/%.c=$(OBJ_DIR)/%.o) #$(SRCS:.c=.o)
 LIBS = -lm -lglib-2.0
 INCLUDES = -Iincludes
 PKG_CONFIG = `pkg-config --cflags --libs glib-2.0`
-TARGET = programa-principal
+MAIN_TARGET = programa-principal
+TESTS_TARGET = unidade-testes
 
 # Pretty stuff
 NO_COLOR = \033[m
@@ -41,23 +42,33 @@ LINKING_STRING = "[LINKING]"
 DELETING_STRING = "[DELETING]"
 OK_STRING = "[OK]"
 
-
+# Link files
 $(OBJ_DIR)/%.o: src/%.c $(HEADERS)
 	@mkdir -p $(dir $@)
 	@printf "%b" "$(LINKING_COLOR)$(LINKING_STRING) $(NO_COLOR)$@\n";
 	@$(CC) $(FLAGS) -c -o $@ $(INCLUDES) $(PKG_CONFIG) $< $(LIBS)
 
-
-$(TARGET): $(OBJS)
+# Create executable
+$(MAIN_TARGET): $(OBJS)
 	@printf "%b" "$(COMPILING_COLOR)$(COMPILING_STRING) $(NO_COLOR)$@\n";
 	@$(CC) $(FLAGS) -o $@ $(INCLUDES) $(PKG_CONFIG) $^ $(LIBS)
 	@mkdir -p $(RESULT_DIR)
 	@printf "%b" "$(OK_COLOR)$(OK_STRING) $(NO_COLOR)\n";
 
-# Remove the object directory (and its contents) and main-program
+# Run unit tests
+test: tests/test-unit.c
+	@printf "%b" "$(COMPILING_COLOR)$(COMPILING_STRING) $(NO_COLOR)$(TESTS_TARGET)\n";
+	@$(CC) $(FLAGS) tests/test-unit.c -o $(TESTS_TARGET) -lm
+	@printf "%b" "$(OK_COLOR)$(OK_STRING) $(NO_COLOR)\n";
+
+# Remove the object directory (and its contents), main-program and test-unit (if it exists)
 .PHONY: clean
 clean:
 	@printf "%b" "$(DELETING_COLOR)$(DELETING_STRING) $(NO_COLOR)$(OBJ_DIR) directory\n"
 	@printf "%b" "$(DELETING_COLOR)$(DELETING_STRING) $(NO_COLOR)$(RESULT_DIR) directory\n"
-	@printf "%b" "$(DELETING_COLOR)$(DELETING_STRING) $(NO_COLOR)$(TARGET)\n"
-	@rm -rf $(TARGET) $(OBJ_DIR) $(RESULT_DIR)
+	@printf "%b" "$(DELETING_COLOR)$(DELETING_STRING) $(NO_COLOR)$(MAIN_TARGET)\n"
+	@if [ -f "$(TESTS_TARGET)" ]; then \
+		printf "%b" "$(DELETING_COLOR)$(DELETING_STRING) $(NO_COLOR)$(TESTS_TARGET)\n"; \
+		rm -rf $(TESTS_TARGET); \
+	fi
+	@rm -rf $(MAIN_TARGET) $(OBJ_DIR) $(RESULT_DIR)
