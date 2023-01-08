@@ -31,6 +31,4 @@ void set_user_stats(User user, void **stats);
 
 void free_user(User user);
 
-void print_user(User user);
-
 #endif

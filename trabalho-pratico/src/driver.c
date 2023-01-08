@@ -20,7 +20,7 @@ typedef struct driver {
     struct driver_stats {
         float average_rating;
         unsigned short total_rides;
-        float total_earned_money;        
+        float total_earned_money;
         unsigned short latest_ride;
     } stats;
 } *Driver;
@@ -35,9 +35,9 @@ Driver init_driver() {
     driver->license_plate = NULL;
     driver->city = NULL;
     driver->account_status = true;
-    driver->stats.average_rating = 0.0;
+    driver->stats.average_rating = 0.0f;
     driver->stats.total_rides = 0;
-    driver->stats.total_earned_money = 0.0;
+    driver->stats.total_earned_money = 0.0f;
     driver->stats.latest_ride = 0;
 
     return driver;
@@ -124,20 +124,4 @@ void free_driver(Driver driver) {
     free(driver->license_plate);
     free(driver->city);
     free(driver);
-}
-
-// For debug purposes
-void print_driver(Driver driver) {
-    char *birth_date = int_to_date(driver->birth_date);
-    char *account_creation = int_to_date(driver->account_creation);
-    char *account_status;
-
-    if (driver->account_status)
-        account_status = "active";
-    else
-        account_status = "inactive";
-
-    printf("[%s, %s, %s, %s, %s, %s, %s, %s, %s]\n", driver->id, driver->name, birth_date, driver->gender, driver->car_class, driver->license_plate, driver->city, account_creation, account_status);
-    free(birth_date);
-    free(account_creation);
 }

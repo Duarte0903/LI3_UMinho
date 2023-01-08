@@ -37,7 +37,7 @@ void update_user_stats(char *username, void **stats, Users_Catalog catalog) { //
     set_user_stats(user, stats);
 }
 
-static gint compare_user_by_distance(gconstpointer u1, gconstpointer u2) {
+static gint compare_users_by_distance(gconstpointer u1, gconstpointer u2) {
     int result;
     User user1 = *(User *)u1;
     User user2 = *(User *)u2;
@@ -66,7 +66,7 @@ static gint compare_user_by_distance(gconstpointer u1, gconstpointer u2) {
 }
 
 void sort_users_by_distance(Users_Catalog catalog) {
-    g_ptr_array_sort(catalog->users_array, compare_user_by_distance);
+    g_ptr_array_sort(catalog->users_array, compare_users_by_distance);
 }
 
 char *get_user_q1(char *username, Users_Catalog catalog) { // change function and output variable name

@@ -32,9 +32,9 @@ User init_user() {
     user->gender = NULL;
     user->pay_method = NULL;
     user->account_status = true;
-    user->stats.average_rating = 0.0;
+    user->stats.average_rating = 0.0f;
     user->stats.total_rides = 0;
-    user->stats.total_spent_money = 0.0;
+    user->stats.total_spent_money = 0.0f;
     user->stats.total_distance = 0;
     user->stats.latest_ride = 0;
 
@@ -121,24 +121,4 @@ void free_user(User user) {
     free(user->gender);
     free(user->pay_method);
     free(user);
-}
-
-// For debug purposes
-void print_user(User user) {
-    char *birth_date = int_to_date(user->birth_date);
-    char *account_creation = int_to_date(user->account_creation);
-    char *latest_ride = int_to_date(user->stats.latest_ride);
-    unsigned short distance = user->stats.total_distance;
-
-    char *account_status;
-
-    if (user->account_status)
-        account_status = "active";
-    else
-        account_status = "inactive";
-
-    printf("[%s, %s, %s, %s, %s, %s, %s, %hu, %s]\n", user->username, user->name, user->gender, birth_date, account_creation, user->pay_method, account_status, distance, latest_ride);
-    free(birth_date);
-    free(account_creation);
-    free(latest_ride);
 }
