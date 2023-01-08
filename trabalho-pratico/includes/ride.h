@@ -11,6 +11,8 @@ char *get_ride_driver_id(Ride ride);
 
 char *get_ride_user(Ride ride);
 
+char *get_ride_city(Ride ride);
+
 unsigned short get_ride_user_score(Ride ride);
 
 unsigned short get_ride_driver_score(Ride ride);

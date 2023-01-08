@@ -149,6 +149,36 @@ void sort_rides_by_date(Rides_Catalog catalog) {
     g_ptr_array_sort(catalog->rides_array, compare_rides_by_date);
 }
 
+char *get_q4(char *city, Rides_Catalog catalog) {
+    float total_money_in_city = 0;
+    int rides_in_city = 0;
+    int array_length = catalog->rides_array->len;
+    double average_ride_price_in_city;
+
+    for (int i = 0; i<array_length; i++)
+    {
+        Ride ride = g_ptr_array_index(catalog->rides_array, i);
+        char *ride_city = get_ride_city(ride);
+
+        if (strcmp(city, ride_city) == 0)
+        {
+            rides_in_city++;
+            total_money_in_city += get_ride_cost(ride);
+        }
+
+        free(ride_city);
+    }
+
+    if (rides_in_city == 0) average_ride_price_in_city = 0;
+
+    else average_ride_price_in_city = total_money_in_city / rides_in_city;
+
+    char *average_str = malloc(8);
+    sprintf(average_str, "%.3f", average_ride_price_in_city);
+
+    return average_str;
+}
+
 char *get_q5(unsigned short start_date, unsigned short end_date, Rides_Catalog catalog) {
     int first_elem = first_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_with_date, &start_date, 1);
     int last_elem = last_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_with_date, &end_date, 1);

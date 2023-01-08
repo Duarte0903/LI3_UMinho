@@ -62,6 +62,10 @@ char *get_ride_user(Ride ride) {
     return strdup(ride->user);
 }
 
+char *get_ride_city(Ride ride) {
+    return strdup(ride->city);
+}
+
 unsigned short get_ride_user_score(Ride ride) {
     return ride->score_user;
 }
