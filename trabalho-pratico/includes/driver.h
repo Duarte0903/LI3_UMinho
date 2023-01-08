@@ -31,6 +31,4 @@ void set_driver_stats(Driver driver, void **stats);
 
 void free_driver(Driver driver);
 
-void print_driver(Driver driver);
-
 #endif

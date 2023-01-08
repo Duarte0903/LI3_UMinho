@@ -16,6 +16,8 @@ typedef struct ride {
     unsigned short score_driver;
     float tip;
     char *comment; /* informação inútil ? */
+    //stats
+    float cost;
 } *Ride;
 
 Ride init_ride() {
@@ -26,6 +28,7 @@ Ride init_ride() {
     ride->user = NULL;
     ride->city = NULL;
     ride->comment = NULL;
+    ride->cost = 0.0f;
 
     return ride;
 }
@@ -75,8 +78,12 @@ float get_ride_tip(Ride ride) {
     return ride->tip;
 }
 
-unsigned short get_ride_score_driver (Ride ride) {
-    return ride->score_driver;
+float get_ride_cost(Ride ride) {
+    return ride->cost;
+}
+
+void set_ride_cost(Ride ride, float cost) {
+    ride->cost = cost;
 }
 
 void free_ride(Ride ride) {
@@ -86,20 +93,4 @@ void free_ride(Ride ride) {
     free(ride->city);
     free(ride->comment);
     free(ride);
-}
-
-// For debug purposes
-void print_ride(Ride ride) {
-    char *date = int_to_date(ride->date);
-    char distance[5];
-    char score_user[2];
-    char score_driver[2];
-    char tip[10];
-    snprintf(distance, 5, "%hu", ride->distance);
-    snprintf(score_user, 2, "%hu", ride->score_user);
-    snprintf(score_driver, 2, "%hu", ride->score_driver);
-    snprintf(tip, 10, "%.3f", (double)ride->tip); // fix this
-
-    printf("[%s, %s, %s, %s, %s, %s, %s, %s, %s, %s]\n", ride->id, date, ride->driver_id, ride->user, ride->city, distance, score_user, score_driver, tip, ride->comment);
-    free(date);
 }

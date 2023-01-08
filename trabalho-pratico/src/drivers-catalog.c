@@ -42,7 +42,7 @@ char *get_ride_car_class(char *driver_id, Drivers_Catalog catalog) {
     return get_driver_car_class(driver);
 }
 
-static gint compare_driver_by_average_rating(gconstpointer d1, gconstpointer d2) {
+static gint compare_drivers_by_average_rating(gconstpointer d1, gconstpointer d2) { // optimize multiple ifs to 1 if
     int result;
 
     Driver driver1 = *(Driver *)d1;
@@ -72,7 +72,7 @@ static gint compare_driver_by_average_rating(gconstpointer d1, gconstpointer d2)
 }
 
 void sort_drivers_by_average_rating(Drivers_Catalog catalog) { // add flag to check if sorted
-    g_ptr_array_sort(catalog->drivers_array, compare_driver_by_average_rating);
+    g_ptr_array_sort(catalog->drivers_array, compare_drivers_by_average_rating);
 }
 
 char *get_driver_q1(char *id, Drivers_Catalog catalog) { // change function and output variable name

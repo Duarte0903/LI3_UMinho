@@ -5,6 +5,7 @@
 #include "../includes/drivers-catalog.h"
 #include "../includes/users-catalog.h"
 #include "../includes/ride.h"
+#include "../includes/utils.h"
 
 #define N_USER_STATS 4
 #define N_DRIVER_STATS 3
@@ -25,8 +26,8 @@ Rides_Catalog create_rides_catalog() {
     return catalog;
 }
 
-double calculate_ride_cost_w_tip(char *car_class, unsigned short distance, float tip) {
-    double result = tip;
+double calculate_ride_cost(char *car_class, unsigned short distance) {
+    double result = 0.0;
 
     if (!strcmp(car_class, "basic"))
         result += 3.25 + 0.62 * distance;
@@ -97,16 +98,18 @@ void insert_ride_in_catalog(char **fields, va_list args) {
 
     char *username = get_ride_user(ride);
     char *driver_id = get_ride_driver_id(ride);
-
-    float ride_tip = get_ride_tip(ride);
     unsigned short ride_distance = get_ride_distance(ride);
     char *ride_car_class = get_ride_car_class(driver_id, drivers_catalog);
-    float ride_cost_w_tip = calculate_ride_cost_w_tip(ride_car_class, ride_distance, ride_tip);
-    // casting double to float is ok since we do not need much precision to calculate money
+    float ride_cost = calculate_ride_cost(ride_car_class, ride_distance);
+    // casting double to float is ok since we do not need much precision to calculate monetary values
+    set_ride_cost(ride, ride_cost);
+    free(ride_car_class);
+
+    float ride_tip = get_ride_tip(ride);
+    float ride_cost_w_tip = ride_cost + ride_tip;
     unsigned short ride_user_score = get_ride_user_score(ride);
     unsigned short ride_driver_score = get_ride_driver_score(ride);
     unsigned short ride_date = get_ride_date(ride);
-    free(ride_car_class);
 
     void **user_stats_fields = get_user_stats_from_ride(ride_user_score, ride_cost_w_tip, ride_distance, ride_date);
     update_user_stats(username, user_stats_fields, users_catalog);
@@ -123,8 +126,51 @@ void insert_ride_in_catalog(char **fields, va_list args) {
     free(driver_stats_fields);
 }
 
+static gint compare_rides_by_date(gconstpointer r1, gconstpointer r2) {
+    Ride ride1 = *(Ride *)r1;
+    Ride ride2 = *(Ride *)r2;
+
+    unsigned short date1 = get_ride_date(ride1);
+    unsigned short date2 = get_ride_date(ride2);
+
+    return (date1 < date2) ? -1 : (date1 > date2);
+}
+
+static gint compare_ride_date_with_date(gconstpointer r, gconstpointer d) {
+    Ride ride = *(Ride *)r;
+    unsigned short date = *(unsigned short *)d;
+
+    unsigned short ride_date = get_ride_date(ride);
+
+    return (ride_date < date) ? -1 : (ride_date > date);
+}
+
+void sort_rides_by_date(Rides_Catalog catalog) {
+    g_ptr_array_sort(catalog->rides_array, compare_rides_by_date);
+}
+
+char *get_q5(unsigned short start_date, unsigned short end_date, Rides_Catalog catalog) {
+    int first_elem = first_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_with_date, &start_date, 1);
+    int last_elem = last_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_with_date, &end_date, 1);
+
+    if (first_elem == -1 || last_elem == -1) // the dates do not exist in the array + out of bounds
+        return NULL;
+
+    int n = last_elem - first_elem + 1;
+    double average_price = 0.0;
+
+    for (int i = 0; i < n; i++) {
+        average_price += (double)get_ride_cost(g_ptr_array_index(catalog->rides_array, first_elem + i));
+    }
+    average_price /= n;
+
+    char *result = malloc(10 + 1); // 10 average price, 1 do \0
+    sprintf(result, "%.3f", average_price);
+        
+    return result;
+}
+
 void free_rides_catalog(Rides_Catalog catalog) {
     g_ptr_array_free(catalog->rides_array, TRUE);
     free(catalog);
 }
- 

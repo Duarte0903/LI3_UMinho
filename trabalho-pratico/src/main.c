@@ -10,7 +10,7 @@
 #define N_USER_FIELDS 7
 #define N_DRIVER_FIELDS 9
 #define N_RIDE_FIELDS 10
-#define MAX_QUERY_ARGS 4    
+#define MAX_QUERY_ARGS 4
 
 int main(int argc, char **argv) {
     if(argc == 3) {

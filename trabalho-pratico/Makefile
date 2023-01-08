@@ -15,6 +15,9 @@ FLAGS.sanitizer = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla 
 FLAGS.debug = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla -pedantic-errors -Wfatal-errors -O0 -g
 FLAGS := $(FLAGS.$(BUILD))
 
+# Makefile Flags
+MAKEFLAGS += --no-print-directory
+
 # Directories
 OBJ_DIR := build
 RESULT_DIR := Resultados
@@ -97,6 +100,30 @@ test: tests/test-unit.c
 	else \
 		printf "%b" "$(COMPILING_COLOR)$(RESULT_DIR) directory does not exist!$(NO_COLOR)\n"; \
 	fi
+
+# Run gdb (clean up any existing build and build debug mode)
+.PHONY: gdb
+gdb:
+	@if [ -d $(RESULT_DIR) ]; then \
+		printf "%b" "$(COMPILING_COLOR)Deleting old build!$(NO_COLOR)\n\n"; \
+		make clean; \
+		printf "%b" "\n"; \
+	fi
+	@printf "%b" "$(COMPILING_COLOR)Building debug mode!$(NO_COLOR)\n\n"
+	@make BUILD=debug
+	@gdb --args $(MAIN_TARGET) $(DATA_DIR) $(INPUT)
+
+# Run valgrind (clean up any existing build and build debug mode)
+.PHONY: valgrind
+valgrind:
+	@if [ -d $(RESULT_DIR) ]; then \
+		printf "%b" "$(COMPILING_COLOR)Deleting old build!$(NO_COLOR)\n\n"; \
+		make clean; \
+		printf "%b" "\n"; \
+	fi
+	@printf "%b" "$(COMPILING_COLOR)Building debug mode!$(NO_COLOR)\n\n"
+	@make BUILD=debug
+	@valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all -s ./$(MAIN_TARGET) $(DATA_DIR) $(INPUT)
 
 # Remove the object directory (and its contents), main-program and test-unit (if it exists)
 .PHONY: clean
