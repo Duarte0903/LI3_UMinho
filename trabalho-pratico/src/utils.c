@@ -63,9 +63,9 @@ int first_occurrence_ptr_array_bsearch(GPtrArray *array, GCompareFunc compare_fu
         elem = g_ptr_array_index(array, middle);
         value = compare_func(&elem, target);
 
-        if (value == 1)
+        if (value > 0)
             right = middle - 1;
-        else if (value == -1)
+        else if (value < 0)
             left = middle + 1;
         else {
             result = middle;
@@ -94,9 +94,9 @@ int last_occurrence_ptr_array_bsearch(GPtrArray *array, GCompareFunc compare_fun
         elem = g_ptr_array_index(array, middle);
         value = compare_func(&elem, target);
 
-        if (value == 1)
+        if (value > 0)
             right = middle - 1;
-        else if (value == -1)
+        else if (value < 0)
             left = middle + 1;
         else {
             result = middle;

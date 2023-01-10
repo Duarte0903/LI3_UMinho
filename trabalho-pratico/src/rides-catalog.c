@@ -1,6 +1,7 @@
 #include <glib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 #include "../includes/rides-catalog.h"
 #include "../includes/drivers-catalog.h"
 #include "../includes/users-catalog.h"
@@ -149,31 +150,55 @@ void sort_rides_by_date(Rides_Catalog catalog) {
     g_ptr_array_sort(catalog->rides_array, compare_rides_by_date);
 }
 
+static gint compare_ride_by_city(gconstpointer r1, gconstpointer r2) {
+    Ride ride1 = *(Ride *)r1;
+    Ride ride2 = *(Ride *)r2;
+
+    char *city1 = get_ride_city(ride1);
+    char *city2 = get_ride_city(ride2);
+
+    int result = strcmp(city1,city2);
+
+    free(city1);
+    free(city2);
+
+    return result;
+}
+
+static gint compare_ride_city_w_city(gconstpointer r1, gconstpointer c) {
+    Ride ride = *(Ride *)r1;
+    char *city = *(char **)c;
+
+    char *ride_city = get_ride_city(ride);
+
+    int result = strcmp(ride_city,city);
+
+    free(ride_city);
+
+    return result;
+}
+
+void sort_rides_by_city(Rides_Catalog catalog) {
+    g_ptr_array_sort(catalog->rides_array, compare_ride_by_city);
+}
+
 char *get_q4(char *city, Rides_Catalog catalog) {
-    float total_money_in_city = 0;
-    int rides_in_city = 0;
-    int array_length = catalog->rides_array->len;
-    double average_ride_price_in_city;
+    int first_elem = first_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_city_w_city, &city, 0);
 
-    for (int i = 0; i<array_length; i++)
+    if (first_elem == -1) return NULL;
+
+    int last_elem = last_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_city_w_city, &city, 0);
+    int rides_in_city = last_elem - first_elem + 1;
+    double average_ride_price_in_city = 0.0;
+
+    for (int i = 0; i<rides_in_city; i++)
     {
-        Ride ride = g_ptr_array_index(catalog->rides_array, i);
-        char *ride_city = get_ride_city(ride);
-
-        if (strcmp(city, ride_city) == 0)
-        {
-            rides_in_city++;
-            total_money_in_city += get_ride_cost(ride);
-        }
-
-        free(ride_city);
+        average_ride_price_in_city += (double)get_ride_cost(g_ptr_array_index(catalog->rides_array, first_elem+i));
     }
 
-    if (rides_in_city == 0) average_ride_price_in_city = 0;
+    average_ride_price_in_city /= rides_in_city;
 
-    else average_ride_price_in_city = total_money_in_city / rides_in_city;
-
-    char *average_str = malloc(8);
+    char *average_str = malloc(11);
     sprintf(average_str, "%.3f", average_ride_price_in_city);
 
     return average_str;

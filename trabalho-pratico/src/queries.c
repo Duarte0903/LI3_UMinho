@@ -78,11 +78,14 @@ void print_q3(FILE *output_file, char **fields, va_list args) {
 }
 
 void print_q4(FILE *output_file, char **fields, va_list args) {
+    (void)va_arg(args, Users_Catalog);
     (void)va_arg(args, Drivers_Catalog);
     Rides_Catalog rides_catalog = va_arg(args, Rides_Catalog);
     char *output = NULL;
     char *city = fields[1];
+    city[strcspn(city, "\n")] = 0;
 
+    sort_rides_by_city(rides_catalog);
     output = get_q4(city, rides_catalog);
 
     if (output) {
