@@ -248,9 +248,7 @@ char *get_q6(char *city, unsigned short start_date, unsigned short end_date, Rid
         free(ride_city);
     }
 
-    if (rides_in_city == 0) average_distance_in_city = 0.0;
-
-    else average_distance_in_city /= rides_in_city;
+    average_distance_in_city /= rides_in_city;
 
     char *result = malloc(10 + 1);
     sprintf(result, "%.3f", average_distance_in_city);
