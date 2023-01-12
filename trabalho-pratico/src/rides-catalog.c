@@ -225,6 +225,39 @@ char *get_q5(unsigned short start_date, unsigned short end_date, Rides_Catalog c
     return result;
 }
 
+char *get_q6(char *city, unsigned short start_date, unsigned short end_date, Rides_Catalog catalog) {
+    int first_elem = first_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_with_date, &start_date, 1);
+    int last_elem = last_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_with_date, &end_date, 1);
+
+    if (first_elem == -1 || last_elem == -1) // the dates do not exist in the array + out of bounds
+        return NULL;
+
+    int n = last_elem - first_elem + 1; // number of rides in date interval
+    int rides_in_city = 0; 
+    double average_distance_in_city;
+
+    for (int i = 0; i < n; i++) {
+        Ride ride = g_ptr_array_index(catalog->rides_array, first_elem+i);
+        char *ride_city = get_ride_city(ride);
+
+        if (strcmp(ride_city, city) == 0) {
+            rides_in_city++;
+            average_distance_in_city += (double)get_ride_distance(ride);
+        }
+
+        free(ride_city);
+    }
+
+    if (rides_in_city == 0) average_distance_in_city = 0.0;
+
+    else average_distance_in_city /= rides_in_city;
+
+    char *result = malloc(10 + 1);
+    sprintf(result, "%.3f", average_distance_in_city);
+
+    return result;
+}
+
 void free_rides_catalog(Rides_Catalog catalog) {
     g_ptr_array_free(catalog->rides_array, TRUE);
     free(catalog);
