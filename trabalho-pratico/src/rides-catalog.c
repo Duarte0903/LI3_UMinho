@@ -234,7 +234,7 @@ char *get_q6(char *city, unsigned short start_date, unsigned short end_date, Rid
 
     int n = last_elem - first_elem + 1; // number of rides in date interval
     int rides_in_city = 0; 
-    double average_distance_in_city;
+    double average_distance_in_city = 0.0;
 
     for (int i = 0; i < n; i++) {
         Ride ride = g_ptr_array_index(catalog->rides_array, first_elem+i);
