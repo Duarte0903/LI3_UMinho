@@ -230,9 +230,9 @@ char *get_q6(char *city, unsigned short start_date, unsigned short end_date, Rid
 
     if (first_elem == -1 || last_elem == -1) // the dates do not exist in the array + out of bounds
         return NULL;
-
+        
     int n_rides = last_elem - first_elem + 1; // number of rides in date interval
-    int n_rides_in_city = 0; 
+    int n_rides_in_city = 0;
     double average_distance_in_city = 0.0;
 
     for (int i = 0; i < n_rides; i++) {
