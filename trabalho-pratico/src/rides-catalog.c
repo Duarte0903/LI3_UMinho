@@ -185,23 +185,22 @@ void sort_rides_by_city(Rides_Catalog catalog) {
 char *get_q4(char *city, Rides_Catalog catalog) {
     int first_elem = first_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_city_w_city, &city, 0);
 
-    if (first_elem == -1) return NULL;
+    if (first_elem == -1) 
+        return NULL;
 
     int last_elem = last_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_city_w_city, &city, 0);
-    int rides_in_city = last_elem - first_elem + 1;
-    double average_ride_price_in_city = 0.0;
+    int n_rides_in_city = last_elem - first_elem + 1;
+    double average_price_in_city = 0.0;
 
-    for (int i = 0; i<rides_in_city; i++)
-    {
-        average_ride_price_in_city += (double)get_ride_cost(g_ptr_array_index(catalog->rides_array, first_elem+i));
+    for (int i = 0; i < n_rides_in_city; i++) {
+        average_price_in_city += (double)get_ride_cost(g_ptr_array_index(catalog->rides_array, first_elem+i));
     }
+    average_price_in_city /= n_rides_in_city;
 
-    average_ride_price_in_city /= rides_in_city;
+    char *result = malloc(11);
+    sprintf(result, "%.3f", average_price_in_city);
 
-    char *average_str = malloc(11);
-    sprintf(average_str, "%.3f", average_ride_price_in_city);
-
-    return average_str;
+    return result;
 }
 
 char *get_q5(unsigned short start_date, unsigned short end_date, Rides_Catalog catalog) {
@@ -211,15 +210,15 @@ char *get_q5(unsigned short start_date, unsigned short end_date, Rides_Catalog c
     if (first_elem == -1 || last_elem == -1) // the dates do not exist in the array + out of bounds
         return NULL;
 
-    int n = last_elem - first_elem + 1;
+    int n_rides = last_elem - first_elem + 1;
     double average_price = 0.0;
 
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n_rides; i++) {
         average_price += (double)get_ride_cost(g_ptr_array_index(catalog->rides_array, first_elem + i));
     }
-    average_price /= n;
+    average_price /= n_rides;
 
-    char *result = malloc(10 + 1); // 10 average price, 1 do \0
+    char *result = malloc(10 + 1); // 10 average price, 1 \0
     sprintf(result, "%.3f", average_price);
         
     return result;
@@ -232,23 +231,22 @@ char *get_q6(char *city, unsigned short start_date, unsigned short end_date, Rid
     if (first_elem == -1 || last_elem == -1) // the dates do not exist in the array + out of bounds
         return NULL;
 
-    int n = last_elem - first_elem + 1; // number of rides in date interval
-    int rides_in_city = 0; 
-    double average_distance_in_city;
+    int n_rides = last_elem - first_elem + 1; // number of rides in date interval
+    int n_rides_in_city = 0; 
+    double average_distance_in_city = 0.0;
 
-    for (int i = 0; i < n; i++) {
-        Ride ride = g_ptr_array_index(catalog->rides_array, first_elem+i);
+    for (int i = 0; i < n_rides; i++) {
+        Ride ride = g_ptr_array_index(catalog->rides_array, first_elem + i);
         char *ride_city = get_ride_city(ride);
 
         if (strcmp(ride_city, city) == 0) {
-            rides_in_city++;
+            n_rides_in_city++;
             average_distance_in_city += (double)get_ride_distance(ride);
         }
 
         free(ride_city);
     }
-
-    average_distance_in_city /= rides_in_city;
+    average_distance_in_city /= n_rides_in_city;
 
     char *result = malloc(10 + 1);
     sprintf(result, "%.3f", average_distance_in_city);
