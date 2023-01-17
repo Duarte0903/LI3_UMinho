@@ -32,14 +32,11 @@ unidade-testes
 # VSCode configs
 .vscode
 
-# Input
-input1.txt
-
 # Build and Results
 build/
 Resultados/
 
-# Datasets and Tests
-dataset1/
-dataset2/
-test_outputs1/
+# Datasets, Inputs and Tests
+datasets/
+inputs/
+tests/

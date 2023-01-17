@@ -133,6 +133,9 @@ int main(int argc, char **argv) {
         total_tests++;
     }
 
+    if (failed_tests == 0)
+        printf("%sAll tests passed!%s\n", GREEN, NO_COLOR);
+
     // Stop the timer
     clock_t end = clock();
 

@@ -23,9 +23,10 @@ OBJ_DIR := build
 RESULT_DIR := Resultados
 
 # Paths
-DATA_DIR := dataset1
-TEST_DIR := tests/test_outputs1
-INPUT := input1.txt
+DATA_DIR :=
+TEST_DIR :=
+INPUT :=
+MODE := NULL
 
 # Get sources, headers and object files
 SRCS = $(call rwildcard,src,*.c)
@@ -48,6 +49,7 @@ OK_COLOR = \033[0;32m
 COMPILING_STRING = "[COMPILING]"
 LINKING_STRING = "[LINKING]"
 DELETING_STRING = "[DELETING]"
+RESETTING_STRING = "[RESETTING]"
 OK_STRING = "[OK]"
 
 # Link files
@@ -63,12 +65,68 @@ $(MAIN_TARGET): $(OBJS)
 	@mkdir -p $(RESULT_DIR)
 	@printf "%b" "$(OK_COLOR)$(OK_STRING) $(NO_COLOR)\n"
 
+# Selects the dataset that will be used when the program is run by changing the path variables
+# It has 4 possible sets (sv, si, lv, li)
+# sv - small dataset with only valid entries | si - small dataset with some invalid entries
+# lv - large dataset with only valid entries | li - large dataset with some invalid entries
+.PHONY: set
+set:
+	@if [ $(words $(MAKECMDGOALS)) -eq 2 ] && [ $(word 2, $(MAKECMDGOALS)) = sv ]; then \
+		printf "%b" "$(COMPILING_COLOR)Changing mode from $(MODE) to SV ...$(NO_COLOR)\n"; \
+		sed -i '0,/DATA_DIR :=.*/{s/DATA_DIR :=.*/DATA_DIR := datasets\/small-valid-dataset/}' Makefile; \
+		sed -i '0,/TEST_DIR :=.*/{s/TEST_DIR :=.*/TEST_DIR := tests\/sv-outputs/}' Makefile; \
+		sed -i '0,/INPUT :=.*/{s/INPUT :=.*/INPUT := inputs\/sv-input.txt/}' Makefile; \
+		sed -i '0,/MODE :=.*/{s/MODE :=.*/MODE := SV/}' Makefile; \
+		printf "%b" "$(COMPILING_COLOR)Done!$(NO_COLOR)\n"; \
+	elif [ $(words $(MAKECMDGOALS)) -eq 2 ] && [ $(word 2, $(MAKECMDGOALS)) = si ]; then \
+		printf "%b" "$(COMPILING_COLOR)Changing mode from $(MODE) to SI ...$(NO_COLOR)\n"; \
+		sed -i '0,/DATA_DIR :=.*/{s/DATA_DIR :=.*/DATA_DIR := datasets\/small-invalid-dataset/}' Makefile; \
+		sed -i '0,/TEST_DIR :=.*/{s/TEST_DIR :=.*/TEST_DIR := tests\/si-outputs/}' Makefile; \
+		sed -i '0,/INPUT :=.*/{s/INPUT :=.*/INPUT := inputs\/si-input.txt/}' Makefile; \
+		sed -i '0,/MODE :=.*/{s/MODE :=.*/MODE := SI/}' Makefile; \
+		printf "%b" "$(COMPILING_COLOR)Done!$(NO_COLOR)\n"; \
+	elif [ $(words $(MAKECMDGOALS)) -eq 2 ] && [ $(word 2, $(MAKECMDGOALS)) = lv ]; then \
+		printf "%b" "$(COMPILING_COLOR)Changing mode from $(MODE) to LV ...$(NO_COLOR)\n"; \
+		sed -i '0,/DATA_DIR :=.*/{s/DATA_DIR :=.*/DATA_DIR := datasets\/large-valid-dataset/}' Makefile; \
+		sed -i '0,/TEST_DIR :=.*/{s/TEST_DIR :=.*/TEST_DIR := tests\/lv-outputs/}' Makefile; \
+		sed -i '0,/INPUT :=.*/{s/INPUT :=.*/INPUT := inputs\/lv-li-input.txt/}' Makefile; \
+		sed -i '0,/MODE :=.*/{s/MODE :=.*/MODE := LV/}' Makefile; \
+		printf "%b" "$(COMPILING_COLOR)Done!$(NO_COLOR)\n"; \
+	elif [ $(words $(MAKECMDGOALS)) -eq 2 ] && [ $(word 2, $(MAKECMDGOALS)) = li ]; then \
+		printf "%b" "$(COMPILING_COLOR)Changing mode from $(MODE) to LI ...$(NO_COLOR)\n"; \
+		sed -i '0,/DATA_DIR :=.*/{s/DATA_DIR :=.*/DATA_DIR := datasets\/large-invalid-dataset/}' Makefile; \
+		sed -i '0,/TEST_DIR :=.*/{s/TEST_DIR :=.*/TEST_DIR := tests\/li-outputs/}' Makefile; \
+		sed -i '0,/INPUT :=.*/{s/INPUT :=.*/INPUT := inputs\/lv-li-input.txt/}' Makefile; \
+		sed -i '0,/MODE :=.*/{s/MODE :=.*/MODE := LI/}' Makefile; \
+		printf "%b" "$(COMPILING_COLOR)Done!$(NO_COLOR)\n"; \
+	else \
+		printf "%b" "$(COMPILING_COLOR)Invalid dataset!$(NO_COLOR)\n"; \
+	fi
+
+# This is explained below after the run rule. It's the same circumstance
+.PHONY: sv si lv li
+sv:
+	@:
+
+si:
+	@:
+
+lv:
+	@:
+
+li:
+	@:
+
 # Run main program in batch mode (make run) or interactive mode (make run i)
 run: $(MAIN_TARGET)
 	@if [ $(words $(MAKECMDGOALS)) -eq 1 ]; then \
-		printf "%b" "$(COMPILING_COLOR)Running batch mode ...$(NO_COLOR)\n"; \
-		./$< $(DATA_DIR) $(INPUT); \
-		printf "%b" "$(COMPILING_COLOR)Done!$(NO_COLOR)\n"; \
+		if [ -n "$(strip $(DATA_DIR))" ]; then \
+			printf "%b" "$(COMPILING_COLOR)Running batch mode with $(DATA_DIR) ...$(NO_COLOR)\n"; \
+			./$< $(DATA_DIR) $(INPUT); \
+			printf "%b" "$(COMPILING_COLOR)Done!$(NO_COLOR)\n"; \
+		else \
+			printf "%b" "$(COMPILING_COLOR)Dataset is not defined!$(NO_COLOR)\n"; \
+		fi \
 	elif [ $(words $(MAKECMDGOALS)) -eq 2 ] && [ $(word 2, $(MAKECMDGOALS)) = i ]; then \
 		printf "%b" "$(COMPILING_COLOR)Running interactive mode!$(NO_COLOR)\n"; \
 		./$<; \
@@ -125,7 +183,7 @@ valgrind:
 	@make BUILD=debug
 	@valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all -s ./$(MAIN_TARGET) $(DATA_DIR) $(INPUT)
 
-# Remove the object directory (and its contents), main-program and test-unit (if it exists)
+# Remove the object directory (and its contents), main-program and test-unit (if it exists) and clean path variables
 .PHONY: clean
 clean:
 	@printf "%b" "$(DELETING_COLOR)$(DELETING_STRING) $(NO_COLOR)$(OBJ_DIR) directory\n"
@@ -136,3 +194,8 @@ clean:
 		rm -rf $(TESTS_TARGET); \
 	fi
 	@rm -rf $(MAIN_TARGET) $(OBJ_DIR) $(RESULT_DIR)
+	@printf "%b" "$(DELETING_COLOR)$(RESETTING_STRING) $(NO_COLOR)paths (MODE = NULL)\n"
+	@sed -i '0,/DATA_DIR :=.*/{s/DATA_DIR :=.*/DATA_DIR :=/}' Makefile
+	@sed -i '0,/TEST_DIR :=.*/{s/TEST_DIR :=.*/TEST_DIR :=/}' Makefile
+	@sed -i '0,/INPUT :=.*/{s/INPUT :=.*/INPUT :=/}' Makefile
+	@sed -i '0,/MODE :=.*/{s/MODE :=.*/MODE := NULL/}' Makefile; \
