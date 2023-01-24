@@ -2,11 +2,13 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <strings.h>
 #include "../includes/rides-catalog.h"
 #include "../includes/drivers-catalog.h"
 #include "../includes/users-catalog.h"
 #include "../includes/ride.h"
 #include "../includes/utils.h"
+#include "../includes/date.h"
 
 #define N_USER_STATS 4
 #define N_DRIVER_STATS 3
@@ -27,12 +29,36 @@ Rides_Catalog create_rides_catalog() {
     return catalog;
 }
 
+int is_valid_ride(char **fields) {
+    if (IS_EMPTY(fields[0]) || IS_EMPTY(fields[2]) || IS_EMPTY(fields[3]) || IS_EMPTY(fields[4]))
+        return 0;
+
+    int day, month, year;
+
+    if (!(sscanf(fields[1], "%2d/%2d/%4d", &day, &month, &year) == 3 && is_valid_date(day, month, year)))
+        return 0;
+
+    if (IS_EMPTY(fields[5]) || !is_positive_integer(fields[5]))
+        return 0;
+
+    if (IS_EMPTY(fields[6]) || !is_positive_integer(fields[6]))
+        return 0;
+
+    if (IS_EMPTY(fields[7]) || !is_positive_integer(fields[7]))
+        return 0;
+
+    if (IS_EMPTY(fields[8]) || !is_non_negative_float(fields[8]))
+        return 0;
+
+    return 1;
+}
+
 double calculate_ride_cost(char *car_class, unsigned short distance) {
     double result = 0.0;
 
-    if (!strcmp(car_class, "basic"))
+    if (!strcasecmp(car_class, "basic"))
         result += 3.25 + 0.62 * distance;
-    else if (!strcmp(car_class, "green"))
+    else if (!strcasecmp(car_class, "green"))
         result += 4 + 0.79 * distance;
     else
         result += 5.20 + 0.94 * distance;
@@ -246,6 +272,10 @@ char *get_q6(char *city, unsigned short start_date, unsigned short end_date, Rid
 
         free(ride_city);
     }
+
+    if (n_rides_in_city == 0)
+        return NULL;
+
     average_distance_in_city /= n_rides_in_city;
 
     char *result = malloc(10 + 1);

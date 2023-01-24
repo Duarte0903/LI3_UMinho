@@ -25,9 +25,9 @@ int main(int argc, char **argv) {
         Drivers_Catalog drivers_catalog = create_drivers_catalog();
         Rides_Catalog rides_catalog = create_rides_catalog();
 
-        parse_file(users_file, N_USER_FIELDS, insert_user_in_catalog, users_catalog);
-        parse_file(drivers_file, N_DRIVER_FIELDS, insert_driver_in_catalog, drivers_catalog);
-        parse_file(rides_file, N_RIDE_FIELDS, insert_ride_in_catalog, rides_catalog, users_catalog, drivers_catalog);
+        parse_file(users_file, N_USER_FIELDS, is_valid_user, insert_user_in_catalog, users_catalog);
+        parse_file(drivers_file, N_DRIVER_FIELDS, is_valid_driver, insert_driver_in_catalog, drivers_catalog);
+        parse_file(rides_file, N_RIDE_FIELDS, is_valid_ride, insert_ride_in_catalog, rides_catalog, users_catalog, drivers_catalog);
 
         parse_query(query_path, MAX_QUERY_ARGS, users_catalog, drivers_catalog, rides_catalog);
 
