@@ -14,13 +14,13 @@ Date convert_string_to_date(char *date) {
     return result;
 }
 
-char *convert_date_to_string(Date d) {
+char *convert_date_to_string(Date d) { // test new format
     char day[3];
     char month[3];
     char year[5];
-    sprintf(day, "%d", d.d);
-    sprintf(month, "%d", d.m);
-    sprintf(year, "%d", d.y);
+    sprintf(day, "%02d", d.d);
+    sprintf(month, "%02d", d.m);
+    sprintf(year, "%02d", d.y);
 
     size_t size = strlen(day) + strlen(month) + strlen(year) + 3;
     char *result = malloc(size);

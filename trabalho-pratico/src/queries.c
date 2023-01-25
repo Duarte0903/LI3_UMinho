@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <glib.h>
 #include "../includes/queries.h"
 #include "../includes/users-catalog.h"
 #include "../includes/drivers-catalog.h"
@@ -156,8 +157,7 @@ void print_q6(FILE *output_file, char **fields, va_list args)
     }
 }
 
-void print_q7(FILE *output_file, char **fields, va_list args)
-{
+void print_q7(FILE *output_file, char **fields, va_list args) {
     va_list args_copy;
     va_copy(args_copy, args);
 
@@ -190,12 +190,48 @@ void print_q8(FILE *output_file, char **fields, va_list args)
     (void)args;
 }
 
-void print_q9(FILE *output_file, char **fields, va_list args)
-{
-    // Nothing to do
-    (void)output_file;
-    (void)fields;
-    (void)args;
+void print_q9(FILE *output_file, char **fields, va_list args) {
+    (void)va_arg(args, Users_Catalog);
+    (void)va_arg(args, Drivers_Catalog);
+    Rides_Catalog rides_catalog = va_arg(args, Rides_Catalog);
+    char *output = NULL;
+    char *date1 = fields[1], *date2 = fields[2];
+    date2[strcspn(date2, "\n")] = 0;
+
+    unsigned short start_date = date_to_int(date1);
+    unsigned short end_date = date_to_int(date2);
+
+    if (end_date < start_date) // print empty file
+        return;
+
+    sort_rides_by_date(rides_catalog);
+
+    int first_date = get_rides_first_date(rides_catalog, start_date);
+    if (first_date == -1) return;
+    int last_date = get_rides_last_date(rides_catalog, end_date);
+
+    GPtrArray *results_array = g_ptr_array_new();
+
+    copy_rides_to_results_array(rides_catalog, first_date, last_date, results_array);
+
+    sort_rides_by_distance(results_array);
+
+    int last_index = get_last_ride_w_nonzero_tip(results_array);
+
+    if (last_index == -1) last_index = 0;
+
+    int index = 0;
+
+    while (index <= last_index) {
+        output = get_q9(index, results_array);
+
+        if (output) {
+            fprintf(output_file, "%s\n", output); // Optimize to fwrite?
+            free(output);
+        }
+
+        index++;
+    }
 }
 
 void handle_query(FILE *output_file, char **fields, va_list args)
