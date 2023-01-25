@@ -9,16 +9,19 @@
 #include "../includes/utils.h"
 #include "../includes/date.h"
 
-typedef struct drivers_catalog {
+typedef struct drivers_catalog
+{
     GPtrArray *drivers_array;
     GHashTable *drivers_ht;
 } *Drivers_Catalog;
 
-void glib_wrapper_free_driver(gpointer driver) {
+void glib_wrapper_free_driver(gpointer driver)
+{
     free_driver(driver);
 }
 
-Drivers_Catalog create_drivers_catalog() {
+Drivers_Catalog create_drivers_catalog()
+{
     Drivers_Catalog catalog = malloc(sizeof(struct drivers_catalog));
 
     catalog->drivers_array = g_ptr_array_new(); // update to ptr array full?
@@ -52,22 +55,36 @@ void insert_driver_in_catalog(char **fields, va_list args) {
     Drivers_Catalog catalog = va_arg(args, Drivers_Catalog);
     Driver driver = create_driver(fields);
     char *key = get_driver_id(driver);
-    
+
     g_hash_table_insert(catalog->drivers_ht, key, driver);
     g_ptr_array_add(catalog->drivers_array, driver);
 }
 
-void update_driver_stats(char *driver_id, void **stats, Drivers_Catalog catalog) { // Improve function after input validation
+void update_driver_stats(char *driver_id, void **stats, Drivers_Catalog catalog)
+{ // Improve function after input validation
     Driver driver = g_hash_table_lookup(catalog->drivers_ht, driver_id);
     set_driver_stats(driver, stats);
 }
 
-char *get_ride_car_class(char *driver_id, Drivers_Catalog catalog) {
+char *get_ride_car_class(char *driver_id, Drivers_Catalog catalog)
+{
     Driver driver = g_hash_table_lookup(catalog->drivers_ht, driver_id);
     return get_driver_car_class(driver);
 }
 
-static gint compare_drivers_by_average_rating(gconstpointer d1, gconstpointer d2) { // optimize multiple ifs to 1 if
+char *get_driver_name_id(char *driver_id, Drivers_Catalog catalog)
+{
+    Driver driver = g_hash_table_lookup(catalog->drivers_ht, driver_id);
+    return get_driver_name(driver);
+}
+
+bool get_driver_account_status_id(char *driver_id, Drivers_Catalog catalog){
+    Driver driver = g_hash_table_lookup(catalog->drivers_ht, driver_id);
+    return get_driver_account_status(driver);
+}
+
+static gint compare_drivers_by_average_rating(gconstpointer d1, gconstpointer d2)
+{ // optimize multiple ifs to 1 if
     int result;
 
     Driver driver1 = *(Driver *)d1;
@@ -98,11 +115,13 @@ static gint compare_drivers_by_average_rating(gconstpointer d1, gconstpointer d2
     return result;
 }
 
-void sort_drivers_by_average_rating(Drivers_Catalog catalog) { // add flag to check if sorted
+void sort_drivers_by_average_rating(Drivers_Catalog catalog)
+{ // add flag to check if sorted
     g_ptr_array_sort(catalog->drivers_array, compare_drivers_by_average_rating);
 }
 
-char *get_driver_q1(char *id, Drivers_Catalog catalog) { // change function and output variable name
+char *get_driver_q1(char *id, Drivers_Catalog catalog)
+{ // change function and output variable name
     Driver driver = g_hash_table_lookup(catalog->drivers_ht, id);
 
     if (!driver || !get_driver_account_status(driver))
@@ -125,7 +144,8 @@ char *get_driver_q1(char *id, Drivers_Catalog catalog) { // change function and 
     return driver_str;
 }
 
-char *get_q2(int index, Drivers_Catalog catalog) { // change function name
+char *get_q2(int index, Drivers_Catalog catalog)
+{ // change function name
     Driver driver = g_ptr_array_index(catalog->drivers_array, index);
     bool account_status = get_driver_account_status(driver);
 
@@ -145,7 +165,8 @@ char *get_q2(int index, Drivers_Catalog catalog) { // change function name
     return result;
 }
 
-void free_drivers_catalog(Drivers_Catalog catalog) {
+void free_drivers_catalog(Drivers_Catalog catalog)
+{
     g_ptr_array_free(catalog->drivers_array, TRUE);
     g_hash_table_destroy(catalog->drivers_ht);
     free(catalog);
