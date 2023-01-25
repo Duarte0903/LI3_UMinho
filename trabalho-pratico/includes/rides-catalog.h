@@ -5,6 +5,8 @@ typedef struct rides_catalog *Rides_Catalog;
 
 Rides_Catalog create_rides_catalog();
 
+int is_valid_ride(char **fields);
+
 void insert_ride_in_catalog(char **fields, va_list args);
 
 void sort_rides_by_date(Rides_Catalog catalog);

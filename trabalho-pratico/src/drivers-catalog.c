@@ -2,8 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <strings.h>
+#include <string.h>
 #include "../includes/drivers-catalog.h"
 #include "../includes/driver.h"
+#include "../includes/utils.h"
+#include "../includes/date.h"
 
 typedef struct drivers_catalog
 {
@@ -26,8 +30,28 @@ Drivers_Catalog create_drivers_catalog()
     return catalog;
 }
 
-void insert_driver_in_catalog(char **fields, va_list args)
-{
+int is_valid_driver(char **fields) {
+    if (IS_EMPTY(fields[0]) || IS_EMPTY(fields[1]) || IS_EMPTY(fields[3]) || IS_EMPTY(fields[5]) || IS_EMPTY(fields[6]))
+        return 0;
+
+    int day, month, year;
+
+    if (!(sscanf(fields[2], "%2d/%2d/%4d", &day, &month, &year) == 3 && is_valid_date(day, month, year)))
+        return 0;
+
+    if (!(sscanf(fields[7], "%2d/%2d/%4d", &day, &month, &year) == 3 && is_valid_date(day, month, year)))
+        return 0;
+
+    if (IS_EMPTY(fields[4]) || (strcasecmp(fields[4], "basic") != 0 && strcasecmp(fields[4], "green") != 0 && strcasecmp(fields[4], "premium") != 0))
+        return 0;
+
+    if (IS_EMPTY(fields[8]) || (strcasecmp(fields[8], "active\n") != 0 && strcasecmp(fields[8], "inactive\n") != 0))
+        return 0;
+
+    return 1;
+}
+
+void insert_driver_in_catalog(char **fields, va_list args) {
     Drivers_Catalog catalog = va_arg(args, Drivers_Catalog);
     Driver driver = create_driver(fields);
     char *key = get_driver_id(driver);
@@ -74,13 +98,15 @@ static gint compare_drivers_by_average_rating(gconstpointer d1, gconstpointer d2
     unsigned short date2 = get_driver_latest_ride(driver2);
     char *driver_id2 = get_driver_id(driver2);
 
-    if (average_rating1 < average_rating2 || (average_rating1 == average_rating2 && date1 < date2))
+    int nearly_equal = nearly_equal_floats(average_rating1, average_rating2, 0.00001f);
+
+    if ((!nearly_equal && average_rating1 < average_rating2) || (nearly_equal && date1 < date2))
         result = 1;
 
-    if (average_rating1 > average_rating2 || (average_rating1 == average_rating2 && date1 > date2))
+    if ((!nearly_equal && average_rating1 > average_rating2) || (nearly_equal && date1 > date2))
         result = -1;
 
-    if (average_rating1 == average_rating2 && date1 == date2)
+    if (nearly_equal && date1 == date2)
         result = strcmp(driver_id1, driver_id2);
 
     free(driver_id1);
@@ -98,7 +124,7 @@ char *get_driver_q1(char *id, Drivers_Catalog catalog)
 { // change function and output variable name
     Driver driver = g_hash_table_lookup(catalog->drivers_ht, id);
 
-    if (!get_driver_account_status(driver))
+    if (!driver || !get_driver_account_status(driver))
         return NULL;
 
     char *name = get_driver_name(driver);

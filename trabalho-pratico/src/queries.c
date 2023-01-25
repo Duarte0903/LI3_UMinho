@@ -111,7 +111,6 @@ void print_q5(FILE *output_file, char **fields, va_list args)
     Rides_Catalog rides_catalog = va_arg(args, Rides_Catalog);
     char *output = NULL;
     char *date1 = fields[1], *date2 = fields[2];
-    date1[strcspn(date1, "\n")] = 0;
     date2[strcspn(date2, "\n")] = 0;
 
     unsigned short start_date = date_to_int(date1);
@@ -138,8 +137,6 @@ void print_q6(FILE *output_file, char **fields, va_list args)
     Rides_Catalog rides_catalog = va_arg(args, Rides_Catalog);
     char *output = NULL;
     char *city = fields[1], *date1 = fields[2], *date2 = fields[3];
-    city[strcspn(city, "\n")] = 0;
-    date1[strcspn(date1, "\n")] = 0;
     date2[strcspn(date2, "\n")] = 0;
 
     unsigned short start_date = date_to_int(date1);
@@ -170,6 +167,7 @@ void print_q7(FILE *output_file, char **fields, va_list args)
 
     int output_number = str_to_int(fields[1]);
     char *city = fields[2];
+    city[strcspn(city, "\n")] = 0;
 
     sort_rides_by_city_and_driver_id(rides_catalog);
 

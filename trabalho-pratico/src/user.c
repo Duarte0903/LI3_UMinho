@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <stdio.h>
 #include "../includes/user.h"
 #include "../includes/date.h"
@@ -51,7 +52,7 @@ User create_user(char **fields) {
     user->account_creation = date_to_int(fields[4]);
     user->pay_method = strdup(fields[5]);
 
-    if (strcmp(fields[6], "active\n")) /* return = 0 --> str1 == str2 */
+    if (strcasecmp(fields[6], "active\n")) /* return = 0 --> str1 == str2 */
         user->account_status = false;
 
     return user;

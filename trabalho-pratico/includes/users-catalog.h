@@ -5,6 +5,8 @@ typedef struct users_catalog *Users_Catalog;
 
 Users_Catalog create_users_catalog();
 
+int is_valid_user(char **fields);
+
 void insert_user_in_catalog(char **fields, va_list args);
 
 void update_user_stats(char *username, void **stats, Users_Catalog catalog);
