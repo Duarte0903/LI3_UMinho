@@ -7,6 +7,7 @@
 #include "../includes/users-catalog.h"
 #include "../includes/ride.h"
 #include "../includes/utils.h"
+#include "../includes/date.h"
 
 #define N_USER_STATS 4
 #define N_DRIVER_STATS 3
@@ -222,6 +223,93 @@ char *get_q5(unsigned short start_date, unsigned short end_date, Rides_Catalog c
     char *result = malloc(10 + 1); // 10 average price, 1 do \0
     sprintf(result, "%.3f", average_price);
         
+    return result;
+}
+
+static gint compare_rides_q9(gconstpointer r1, gconstpointer r2) {
+    int result;
+
+    Ride ride1 = *(Ride *)r1;
+    Ride ride2 = *(Ride *)r2;
+
+    unsigned short distance1 = get_ride_distance(ride1);
+    unsigned short date1 = get_ride_date(ride1);
+    char *id1 = get_ride_id(ride1);
+    float tip1 = get_ride_tip(ride1);
+
+    unsigned short distance2 = get_ride_distance(ride2);
+    unsigned short date2 = get_ride_date(ride2);
+    char *id2 = get_ride_id(ride2);
+    float tip2 = get_ride_tip(ride2);
+
+    if ((distance1 < distance2) || (distance1 == distance2 && date1 < date2) || (tip1 == 0.0f && tip2 != 0.0f)) result = -1;
+
+    if ((distance1 > distance2) || (distance1 == distance2 && date1 > date2) || (tip1 != 0.0f && tip2 == 0.0f)) result = 1;
+
+    if (distance1 == distance2 && date1 == date2) result = strcmp(id1, id2);
+
+    free(id1);
+    free(id2);
+
+    return result * (-1);
+}
+
+void sort_rides_by_distance(GPtrArray *arr) {
+    g_ptr_array_sort(arr, compare_rides_q9);
+}
+
+int get_rides_first_date(Rides_Catalog catalog, unsigned short first_date) {
+    int first_elem = first_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_with_date, &first_date, 1);
+    return first_elem;
+}
+
+int get_rides_last_date(Rides_Catalog catalog, unsigned short last_date) {
+    int last_elem = last_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_with_date, &last_date, 1);
+    return last_elem;
+}
+
+static gint compare_ride_tip_w_zero(gconstpointer r1, gconstpointer z) {
+    int result = 1;
+
+    Ride ride = *(Ride *)r1;
+    
+    float zero = *(float *)z;
+
+    float tip = get_ride_tip(ride);
+
+    if (tip > zero) 
+        result = 0;
+
+    return result;
+}
+
+int get_last_ride_w_nonzero_tip(GPtrArray *arr) {
+    float zero = 0.0f;
+    int last_elem = last_occurrence_ptr_array_bsearch(arr, compare_ride_tip_w_zero, &zero, 0);
+    return last_elem;
+}
+
+void copy_rides_to_results_array(Rides_Catalog catalog, int first_elem, int last_elem, GPtrArray *arr) {
+    int n_rides = last_elem - first_elem + 1;
+
+    for (int i = 0; i < n_rides; i++) {
+        Ride ride = g_ptr_array_index(catalog->rides_array, i + first_elem);
+        g_ptr_array_add(arr, ride);
+    }
+}
+
+char *get_q9(int index, GPtrArray *arr) {
+    Ride ride = g_ptr_array_index(arr, index);
+
+    char *ride_id = get_ride_id(ride);
+    char *ride_date = int_to_date(get_ride_date(ride)); 
+    unsigned short ride_distance = get_ride_distance(ride);
+    char *ride_city = get_ride_city(ride);
+    double ride_tip = (double)get_ride_tip(ride);
+
+    char *result = malloc(strlen(ride_id) + strlen(ride_city) + strlen(ride_date) + sizeof(unsigned short) + sizeof(float));
+    sprintf(result, "%s;%s;%hu;%s;%.3f", ride_id, ride_date, ride_distance, ride_city, ride_tip);
+
     return result;
 }
 

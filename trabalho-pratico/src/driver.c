@@ -101,6 +101,10 @@ unsigned short get_driver_latest_ride(Driver driver) {
     return driver->stats.latest_ride;
 }
 
+unsigned short get_driver_account_creation(Driver driver) {
+    return driver->account_creation;
+}
+
 void set_driver_stats(Driver driver, void **stats) {
     unsigned short driver_score = *(unsigned short *)stats[0];
     float new_average_rating = (driver->stats.average_rating * driver->stats.total_rides + driver_score) / (driver->stats.total_rides + 1);
