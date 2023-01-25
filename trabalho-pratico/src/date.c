@@ -10,14 +10,7 @@ typedef struct date {
 
 Date convert_string_to_date(char *date) {
     Date result;
-    char *temp = strdup(date);
-    char *save = temp;
-
-    result.d = str_to_int(strsep(&temp, "/"));
-    result.m = str_to_int(strsep(&temp, "/"));
-    result.y = str_to_int(strsep(&temp, "\0"));
-
-    free(save);
+    sscanf(date, "%d/%d/%d", &result.d, &result.m, &result.y);
     return result;
 }
 
@@ -34,6 +27,18 @@ char *convert_date_to_string(Date d) { // test new format
     snprintf(result, size, "%s/%s/%s", day, month, year);
 
     return result;
+}
+
+int is_valid_date(int day, int month, int year) {
+    int month_days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+    if (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0))
+        month_days[1] = 29;
+
+    if (month < 1 || month > 12 || day < 1 || day > month_days[month - 1] || year < 1)
+        return 0;
+
+    return 1;
 }
 
 int count_leap_years(Date d) {

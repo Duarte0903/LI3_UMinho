@@ -14,11 +14,11 @@ void parse_line(const char *line, char **fields, char *delim) {
     line_copy = strdup(line); // save variable is fields[0]
     assert(line_copy != NULL);
 
-    while ((token = strsep(&line_copy, delim)) != NULL) // don't need to compare n_fields with index (input validation)
+    while ((token = strsep(&line_copy, delim)) != NULL)
         fields[index++] = token;
 }
 
-void parse_file(char *filename, int n_fields, void (*insert_function)(char **, va_list), ...) {
+void parse_file(char *filename, int n_fields, int (*validation_function)(char **), void (*insertion_function)(char **, va_list), ...) {
     FILE *fptr = NULL;
     fptr = fopen(filename, "r");
 
@@ -39,9 +39,11 @@ void parse_file(char *filename, int n_fields, void (*insert_function)(char **, v
         char **fields = malloc(sizeof(char *) * n_fields);
         parse_line(line, fields, ";");
 
-        va_start(args, insert_function); // Reset argument list
-        (*insert_function)(fields, args);
-        
+        if ((*validation_function)(fields)) {
+            va_start(args, insertion_function); // Reset argument list
+            (*insertion_function)(fields, args);
+        }
+
         free(fields[0]);
         free(fields);
     }

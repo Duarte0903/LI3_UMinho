@@ -1,9 +1,12 @@
 #include <glib.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <strings.h>
 #include <stdarg.h>
 #include "../includes/users-catalog.h"
 #include "../includes/user.h"
+#include "../includes/utils.h"
+#include "../includes/date.h"
 
 typedef struct users_catalog {
     GPtrArray *users_array;
@@ -21,6 +24,24 @@ Users_Catalog create_users_catalog() {
     catalog->users_ht = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, glib_wrapper_free_user);
 
     return catalog;
+}
+
+int is_valid_user(char **fields) {
+    if (IS_EMPTY(fields[0]) || IS_EMPTY(fields[1]) || IS_EMPTY(fields[2]) || IS_EMPTY(fields[5]))
+        return 0;
+
+    int day, month, year;
+
+    if (!(sscanf(fields[3], "%2d/%2d/%4d", &day, &month, &year) == 3 && is_valid_date(day, month, year)))
+        return 0;
+
+    if (!(sscanf(fields[4], "%2d/%2d/%4d", &day, &month, &year) == 3 && is_valid_date(day, month, year)))
+        return 0;
+
+    if (IS_EMPTY(fields[6]) || (strcasecmp(fields[6], "active\n") != 0 && strcasecmp(fields[6], "inactive\n") != 0))
+        return 0;
+
+    return 1;
 }
 
 void insert_user_in_catalog(char **fields, va_list args) {
@@ -72,7 +93,7 @@ void sort_users_by_distance(Users_Catalog catalog) {
 char *get_user_q1(char *username, Users_Catalog catalog) { // change function and output variable name
     User user = g_hash_table_lookup(catalog->users_ht, username);
 
-    if (!get_user_account_status(user))
+    if (!user || !get_user_account_status(user))
         return NULL;
 
     char *name = get_user_name(user);

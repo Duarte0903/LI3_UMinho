@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <stdio.h>
 #include "../includes/driver.h"
 #include "../includes/date.h"
@@ -55,7 +56,7 @@ Driver create_driver(char **fields) {
     driver->city = strdup(fields[6]);
     driver->account_creation = date_to_int(fields[7]);
 
-    if (strcmp(fields[8], "active\n")) /* return = 0 --> str1 == str2 */
+    if (strcasecmp(fields[8], "active\n")) /* return = 0 --> str1 == str2 */
         driver->account_status = false;
 
     return driver;
