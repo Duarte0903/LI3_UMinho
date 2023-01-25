@@ -242,9 +242,9 @@ static gint compare_rides_q9(gconstpointer r1, gconstpointer r2) {
     char *id2 = get_ride_id(ride2);
     float tip2 = get_ride_tip(ride2);
 
-    if ((distance1 < distance2) || (distance1 == distance2 && date1 < date2) || (tip1 == 0.0f && tip2 != 0.0f)) result = -1;
+    if ((distance1 < distance2) || (distance1 == distance2 && date1 < date2) || (tip1 == 0.0f && tip2 > 0.0f)) result = -1;
 
-    if ((distance1 > distance2) || (distance1 == distance2 && date1 > date2) || (tip1 != 0.0f && tip2 == 0.0f)) result = 1;
+    if ((distance1 > distance2) || (distance1 == distance2 && date1 > date2) || (tip1 > 0.0f && tip2 == 0.0f)) result = 1;
 
     if (distance1 == distance2 && date1 == date2) result = strcmp(id1, id2);
 
@@ -259,20 +259,17 @@ void sort_rides_by_distance(GPtrArray *arr) {
 }
 
 int get_rides_first_date(Rides_Catalog catalog, unsigned short first_date) {
-    int first_elem = first_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_with_date, &first_date, 1);
-    return first_elem;
+    return first_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_with_date, &first_date, 1);
 }
 
 int get_rides_last_date(Rides_Catalog catalog, unsigned short last_date) {
-    int last_elem = last_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_with_date, &last_date, 1);
-    return last_elem;
+    return last_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_with_date, &last_date, 1);
 }
 
 static gint compare_ride_tip_w_zero(gconstpointer r1, gconstpointer z) {
     int result = 1;
 
     Ride ride = *(Ride *)r1;
-    
     float zero = *(float *)z;
 
     float tip = get_ride_tip(ride);

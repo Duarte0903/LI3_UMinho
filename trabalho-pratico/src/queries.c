@@ -173,7 +173,7 @@ void print_q9(FILE *output_file, char **fields, va_list args) {
 
     int index = 0;
 
-    while (index < last_index) {
+    while (index <= last_index) {
         output = get_q9(index, results_array);
 
         if (output) {
