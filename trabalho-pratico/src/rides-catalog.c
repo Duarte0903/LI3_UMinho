@@ -390,8 +390,6 @@ char *get_q7(unsigned short output_number, char *city, va_list args)
     Drivers_Catalog drivers_catalog = va_arg(args, Drivers_Catalog);
     Rides_Catalog rides_catalog = va_arg(args, Rides_Catalog);
 
-    city[strcspn(city,"\n")] = '\0';
-
     int i = 0;
     int first_elem = first_occurrence_ptr_array_bsearch(rides_catalog->rides_array, compare_ride_city_w_city, &city, 0);
     int last_elem = last_occurrence_ptr_array_bsearch(rides_catalog->rides_array, compare_ride_city_w_city, &city, 0);

@@ -167,6 +167,7 @@ void print_q7(FILE *output_file, char **fields, va_list args)
 
     int output_number = str_to_int(fields[1]);
     char *city = fields[2];
+    city[strcspn(city, "\n")] = 0;
 
     sort_rides_by_city_and_driver_id(rides_catalog);
 
