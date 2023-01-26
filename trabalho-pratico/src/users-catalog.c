@@ -8,16 +8,19 @@
 #include "../includes/utils.h"
 #include "../includes/date.h"
 
-typedef struct users_catalog {
+typedef struct users_catalog
+{
     GPtrArray *users_array;
     GHashTable *users_ht;
 } *Users_Catalog;
 
-void glib_wrapper_free_user(gpointer user) {
+void glib_wrapper_free_user(gpointer user)
+{
     free_user(user);
 }
 
-Users_Catalog create_users_catalog() {
+Users_Catalog create_users_catalog()
+{
     Users_Catalog catalog = malloc(sizeof(struct users_catalog));
 
     catalog->users_array = g_ptr_array_new(); // update to ptr array full?
@@ -26,7 +29,8 @@ Users_Catalog create_users_catalog() {
     return catalog;
 }
 
-int is_valid_user(char **fields) {
+int is_valid_user(char **fields)
+{
     if (IS_EMPTY(fields[0]) || IS_EMPTY(fields[1]) || IS_EMPTY(fields[2]) || IS_EMPTY(fields[5]))
         return 0;
 
@@ -44,21 +48,42 @@ int is_valid_user(char **fields) {
     return 1;
 }
 
-void insert_user_in_catalog(char **fields, va_list args) {
+void insert_user_in_catalog(char **fields, va_list args)
+{
     Users_Catalog catalog = va_arg(args, Users_Catalog);
     User user = create_user(fields);
     char *key = get_user_username(user);
-    
+
     g_hash_table_insert(catalog->users_ht, key, user);
     g_ptr_array_add(catalog->users_array, user);
 }
 
-void update_user_stats(char *username, void **stats, Users_Catalog catalog) { // Improve function after input validation 
+void update_user_stats(char *username, void **stats, Users_Catalog catalog)
+{ // Improve function after input validation
     User user = g_hash_table_lookup(catalog->users_ht, username);
     set_user_stats(user, stats);
 }
 
-static gint compare_users_by_distance(gconstpointer u1, gconstpointer u2) {
+char *get_user_gender_username(char *username, Users_Catalog catalog)
+{
+    User user = g_hash_table_lookup(catalog->users_ht, username);
+    return get_user_gender(user);
+}
+
+char *get_user_name_username(char *username, Users_Catalog catalog)
+{
+    User user = g_hash_table_lookup(catalog->users_ht, username);
+    return get_user_name(user);
+}
+
+bool get_user_account_status_username(char *username, Users_Catalog catalog)
+{
+    User user = g_hash_table_lookup(catalog->users_ht, username);
+    return get_user_account_status(user);
+}
+
+static gint compare_users_by_distance(gconstpointer u1, gconstpointer u2)
+{
     int result;
     User user1 = *(User *)u1;
     User user2 = *(User *)u2;
@@ -86,11 +111,19 @@ static gint compare_users_by_distance(gconstpointer u1, gconstpointer u2) {
     return result;
 }
 
-void sort_users_by_distance(Users_Catalog catalog) {
+void sort_users_by_distance(Users_Catalog catalog)
+{
     g_ptr_array_sort(catalog->users_array, compare_users_by_distance);
 }
 
-char *get_user_q1(char *username, Users_Catalog catalog) { // change function and output variable name
+unsigned short get_user_account_age_w_username(char *username, Users_Catalog catalog)
+{
+    User user = g_hash_table_lookup(catalog->users_ht, username);
+    return get_user_account_age(user);
+}
+
+char *get_user_q1(char *username, Users_Catalog catalog)
+{ // change function and output variable name
     User user = g_hash_table_lookup(catalog->users_ht, username);
 
     if (!user || !get_user_account_status(user))
@@ -113,7 +146,8 @@ char *get_user_q1(char *username, Users_Catalog catalog) { // change function an
     return user_str;
 }
 
-char *get_q3(int index, Users_Catalog catalog) { // change function name
+char *get_q3(int index, Users_Catalog catalog)
+{ // change function name
     User user = g_ptr_array_index(catalog->users_array, index);
     bool account_status = get_user_account_status(user);
 
@@ -133,7 +167,8 @@ char *get_q3(int index, Users_Catalog catalog) { // change function name
     return result;
 }
 
-void free_users_catalog(Users_Catalog catalog) {
+void free_users_catalog(Users_Catalog catalog)
+{
     g_ptr_array_free(catalog->users_array, TRUE);
     g_hash_table_destroy(catalog->users_ht);
     free(catalog);

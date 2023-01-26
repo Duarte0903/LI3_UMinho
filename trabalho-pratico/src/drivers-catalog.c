@@ -30,7 +30,8 @@ Drivers_Catalog create_drivers_catalog()
     return catalog;
 }
 
-int is_valid_driver(char **fields) {
+int is_valid_driver(char **fields)
+{
     if (IS_EMPTY(fields[0]) || IS_EMPTY(fields[1]) || IS_EMPTY(fields[3]) || IS_EMPTY(fields[5]) || IS_EMPTY(fields[6]))
         return 0;
 
@@ -51,7 +52,8 @@ int is_valid_driver(char **fields) {
     return 1;
 }
 
-void insert_driver_in_catalog(char **fields, va_list args) {
+void insert_driver_in_catalog(char **fields, va_list args)
+{
     Drivers_Catalog catalog = va_arg(args, Drivers_Catalog);
     Driver driver = create_driver(fields);
     char *key = get_driver_id(driver);
@@ -78,9 +80,22 @@ char *get_driver_name_id(char *driver_id, Drivers_Catalog catalog)
     return get_driver_name(driver);
 }
 
-bool get_driver_account_status_id(char *driver_id, Drivers_Catalog catalog){
+char *get_driver_gender_id(char *id, Drivers_Catalog catalog)
+{
+    Driver driver = g_hash_table_lookup(catalog->drivers_ht, id);
+    return get_driver_gender(driver);
+}
+
+bool get_driver_account_status_id(char *driver_id, Drivers_Catalog catalog)
+{
     Driver driver = g_hash_table_lookup(catalog->drivers_ht, driver_id);
     return get_driver_account_status(driver);
+}
+
+unsigned short get_driver_account_age_w_id(char *driver_id, Drivers_Catalog catalog)
+{
+    Driver driver = g_hash_table_lookup(catalog->drivers_ht, driver_id);
+    return get_driver_account_age(driver);
 }
 
 static gint compare_drivers_by_average_rating(gconstpointer d1, gconstpointer d2)

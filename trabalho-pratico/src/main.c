@@ -12,13 +12,15 @@
 #define N_RIDE_FIELDS 10
 #define MAX_QUERY_ARGS 4
 
-int main(int argc, char **argv) {
-    if(argc == 3) {
+int main(int argc, char **argv)
+{
+    if (argc == 3)
+    {
         char *data_path = argv[1];
         char *query_path = argv[2];
 
         char *users_file = get_file(data_path, "/users.csv");
-        char *drivers_file = get_file(data_path, "/drivers.csv");        
+        char *drivers_file = get_file(data_path, "/drivers.csv");
         char *rides_file = get_file(data_path, "/rides.csv");
 
         Users_Catalog users_catalog = create_users_catalog();
@@ -37,7 +39,9 @@ int main(int argc, char **argv) {
         free(users_file);
         free(drivers_file);
         free(rides_file);
-    } else {
+    }
+    else
+    {
         printf("Wrong number of arguments!\n");
     }
     return 0;
