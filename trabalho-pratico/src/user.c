@@ -6,6 +6,8 @@
 #include "../includes/date.h"
 #include "../includes/utils.h"
 
+#define REF_DAY "9/10/2022"
+
 typedef struct user {
     char *username;
     char *name;
@@ -20,7 +22,8 @@ typedef struct user {
         unsigned short total_rides;
         float total_spent_money;
         unsigned short total_distance;
-        unsigned short latest_ride;    
+        unsigned short latest_ride;
+        unsigned short account_age;
     } stats;
 } *User;
 
@@ -37,6 +40,7 @@ User init_user() {
     user->stats.total_spent_money = 0.0f;
     user->stats.total_distance = 0;
     user->stats.latest_ride = 0;
+    user->stats.account_age = 0;
 
     return user;
 }
@@ -50,6 +54,7 @@ User create_user(char **fields) {
     user->birth_date = date_to_int(fields[3]);
     user->account_creation = date_to_int(fields[4]);
     user->pay_method = strdup(fields[5]);
+    user->stats.account_age = date_to_int(REF_DAY) - user->account_creation;
 
     if (strcmp(fields[6], "active\n")) /* return = 0 --> str1 == str2 */
         user->account_status = false;
@@ -95,6 +100,10 @@ unsigned short get_user_total_distance(User user) {
 
 unsigned short get_user_latest_ride(User user) {
     return user->stats.latest_ride;
+}
+
+unsigned short get_user_account_age(User user){
+    return user->stats.account_age;
 }
 
 void set_user_stats(User user, void **stats) {

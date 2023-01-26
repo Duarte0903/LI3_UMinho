@@ -27,6 +27,8 @@ unsigned short get_user_total_distance(User user);
 
 unsigned short get_user_latest_ride(User user);
 
+unsigned short get_user_account_age(User user);
+
 void set_user_stats(User user, void **stats);
 
 void free_user(User user);

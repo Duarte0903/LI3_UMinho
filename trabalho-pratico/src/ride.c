@@ -50,6 +50,10 @@ Ride create_ride(char **fields) {
     return ride;
 }
 
+char *get_ride_id(Ride ride){
+    return strdup(ride->id);
+}
+
 unsigned short get_ride_date(Ride ride) {
     return ride->date;
 }

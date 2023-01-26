@@ -15,7 +15,11 @@ char *get_ride_car_class(char *driver_id, Drivers_Catalog catalog);
 
 char *get_driver_name_id(char *driver_id, Drivers_Catalog catalog);
 
+char *get_driver_gender_id(char *id, Drivers_Catalog catalog);
+
 bool get_driver_account_status_id(char *driver_id, Drivers_Catalog catalog);
+
+unsigned short get_driver_account_age_w_id(char *driver_id, Drivers_Catalog catalog);
 
 void sort_drivers_by_average_rating(Drivers_Catalog catalog);
 

@@ -54,9 +54,22 @@ char *get_driver_name_id(char *driver_id, Drivers_Catalog catalog)
     return get_driver_name(driver);
 }
 
-bool get_driver_account_status_id(char *driver_id, Drivers_Catalog catalog){
+char *get_driver_gender_id(char *id, Drivers_Catalog catalog)
+{
+    Driver driver = g_hash_table_lookup(catalog->drivers_ht, id);
+    return get_driver_gender(driver);
+}
+
+bool get_driver_account_status_id(char *driver_id, Drivers_Catalog catalog)
+{
     Driver driver = g_hash_table_lookup(catalog->drivers_ht, driver_id);
     return get_driver_account_status(driver);
+}
+
+unsigned short get_driver_account_age_w_id(char *driver_id, Drivers_Catalog catalog)
+{
+    Driver driver = g_hash_table_lookup(catalog->drivers_ht, driver_id);
+    return get_driver_account_age(driver);
 }
 
 static gint compare_drivers_by_average_rating(gconstpointer d1, gconstpointer d2)

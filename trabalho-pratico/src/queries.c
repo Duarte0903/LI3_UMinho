@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <glib.h>
 #include "../includes/queries.h"
 #include "../includes/users-catalog.h"
 #include "../includes/drivers-catalog.h"
@@ -186,10 +187,31 @@ void print_q7(FILE *output_file, char **fields, va_list args)
 
 void print_q8(FILE *output_file, char **fields, va_list args)
 {
-    // Nothing to do
-    (void)output_file;
-    (void)fields;
-    (void)args;
+
+    Users_Catalog users_catalog = va_arg(args, Users_Catalog);
+    Drivers_Catalog drivers_catalog = va_arg(args, Drivers_Catalog);
+    Rides_Catalog rides_catalog = va_arg(args, Rides_Catalog);
+
+    char *gender = fields[1];
+    fields[2][strcspn(fields[2], "\n")] = '\0';
+
+    int minimum_age = str_to_int(fields[2]);
+
+    GPtrArray *catalog_pointers_extra_data = g_ptr_array_new();
+    g_ptr_array_add(catalog_pointers_extra_data, users_catalog);
+    g_ptr_array_add(catalog_pointers_extra_data, drivers_catalog);
+
+    sort_rides_by_account_age(rides_catalog, catalog_pointers_extra_data);
+
+    char *output = get_q8(gender, minimum_age, rides_catalog, catalog_pointers_extra_data);
+
+    if (output)
+    {
+        fprintf(output_file, "%s\n", output);
+        free(output);
+    }
+
+    g_ptr_array_free(catalog_pointers_extra_data, TRUE);
 }
 
 void print_q9(FILE *output_file, char **fields, va_list args)
