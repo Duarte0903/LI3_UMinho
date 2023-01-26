@@ -7,6 +7,8 @@ typedef struct drivers_catalog *Drivers_Catalog;
 
 Drivers_Catalog create_drivers_catalog();
 
+int is_valid_driver(char **fields);
+
 void insert_driver_in_catalog(char **fields, va_list args);
 
 void update_driver_stats(char *driver_id, void **stats, Drivers_Catalog catalog);

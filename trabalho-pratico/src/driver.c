@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <stdio.h>
 #include "../includes/driver.h"
 #include "../includes/date.h"
@@ -65,7 +66,7 @@ Driver create_driver(char **fields)
     ;
     driver->stats.account_age = date_to_int(REF_DAY) - driver->account_creation;
 
-    if (strcmp(fields[8], "active\n")) /* return = 0 --> str1 == str2 */
+    if (strcasecmp(fields[8], "active\n")) /* return = 0 --> str1 == str2 */
         driver->account_status = false;
 
     return driver;
@@ -119,6 +120,11 @@ float get_driver_total_earned_money(Driver driver)
 unsigned short get_driver_latest_ride(Driver driver)
 {
     return driver->stats.latest_ride;
+}
+
+unsigned short get_driver_account_creation(Driver driver)
+{
+    return driver->account_creation;
 }
 
 unsigned short get_driver_account_age(Driver driver)

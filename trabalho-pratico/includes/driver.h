@@ -29,6 +29,8 @@ unsigned short get_driver_latest_ride (Driver driver);
 
 unsigned short get_driver_account_age(Driver driver);
 
+unsigned short get_driver_account_creation(Driver driver);
+
 void set_driver_stats(Driver driver, void **stats);
 
 void free_driver(Driver driver);
