@@ -25,7 +25,7 @@ bool get_user_account_status_username(char *username, Users_Catalog catalog);
 
 char *get_user_q1(char *username, Users_Catalog catalog);
 
-char *get_q3(int index, Users_Catalog catalog);
+char *get_q3(int n_users, Users_Catalog catalog);
 
 void free_users_catalog(Users_Catalog catalog);
 

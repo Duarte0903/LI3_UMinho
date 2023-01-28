@@ -27,7 +27,7 @@ void sort_drivers_by_average_rating(Drivers_Catalog catalog);
 
 char *get_driver_q1(char *id, Drivers_Catalog catalog);
 
-char *get_q2(int index, Drivers_Catalog catalog);
+char *get_q2(int n_drivers, Drivers_Catalog catalog);
 
 void free_drivers_catalog(Drivers_Catalog catalog);
 
