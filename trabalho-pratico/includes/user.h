@@ -17,11 +17,11 @@ char *get_user_age(User user);
 
 bool get_user_account_status(User user);
 
-float get_user_average_rating(User user);
+double get_user_average_rating(User user);
 
 unsigned short get_user_total_rides(User user);
 
-float get_user_total_spent_money(User user);
+double get_user_total_spent_money(User user);
 
 unsigned short get_user_total_distance(User user);
 

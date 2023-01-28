@@ -27,17 +27,7 @@ char *get_q7(unsigned short output_number, char *city, va_list args);
 
 char *get_q8(char *gender, int minimum_age, Rides_Catalog rides_catalog, gpointer catalog_pointer_extra_data);
 
-void sort_rides_by_distance(GPtrArray *arr);
-
-int get_rides_first_date(Rides_Catalog catalog, unsigned short first_date);
-
-int get_rides_last_date(Rides_Catalog catalog, unsigned short last_date);
-
-int get_last_ride_w_nonzero_tip(GPtrArray *arr);
-
-void copy_rides_to_results_array(Rides_Catalog catalog, int first_elem, int last_elem, GPtrArray *arr);
-
-char *get_q9(int index, GPtrArray *arr); 
+char *get_q9(unsigned short start_date, unsigned short end_date, Rides_Catalog catalog);
 
 void free_rides_catalog(Rides_Catalog catalog);
 

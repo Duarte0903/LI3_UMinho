@@ -23,9 +23,9 @@ typedef struct driver
 
     struct driver_stats
     {
-        float average_rating;
+        double average_rating;
         unsigned short total_rides;
-        float total_earned_money;
+        double total_earned_money;
         unsigned short latest_ride;
         unsigned short account_age;
     } stats;
@@ -42,9 +42,9 @@ Driver init_driver()
     driver->license_plate = NULL;
     driver->city = NULL;
     driver->account_status = true;
-    driver->stats.average_rating = 0.0f;
+    driver->stats.average_rating = 0.0;
     driver->stats.total_rides = 0;
-    driver->stats.total_earned_money = 0.0f;
+    driver->stats.total_earned_money = 0.0;
     driver->stats.latest_ride = 0;
     driver->stats.account_age = 0;
 
@@ -102,7 +102,7 @@ bool get_driver_account_status(Driver driver)
     return driver->account_status;
 }
 
-float get_driver_average_rating(Driver driver)
+double get_driver_average_rating(Driver driver)
 {
     return driver->stats.average_rating;
 }
@@ -112,7 +112,7 @@ unsigned short get_driver_total_rides(Driver driver)
     return driver->stats.total_rides;
 }
 
-float get_driver_total_earned_money(Driver driver)
+double get_driver_total_earned_money(Driver driver)
 {
     return driver->stats.total_earned_money;
 }
@@ -135,12 +135,12 @@ unsigned short get_driver_account_age(Driver driver)
 void set_driver_stats(Driver driver, void **stats)
 {
     unsigned short driver_score = *(unsigned short *)stats[0];
-    float new_average_rating = (driver->stats.average_rating * driver->stats.total_rides + driver_score) / (driver->stats.total_rides + 1);
+    double new_average_rating = (driver->stats.average_rating * driver->stats.total_rides + driver_score) / (driver->stats.total_rides + 1);
     driver->stats.average_rating = new_average_rating;
 
     driver->stats.total_rides++;
 
-    float ride_cost_w_tip = *(float *)stats[1];
+    double ride_cost_w_tip = *(double *)stats[1];
     driver->stats.total_earned_money += ride_cost_w_tip;
 
     unsigned short ride_date = *(unsigned short *)stats[2];

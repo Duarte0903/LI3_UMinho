@@ -15,10 +15,10 @@ typedef struct ride
     unsigned short distance;
     unsigned short score_user;
     unsigned short score_driver;
-    float tip;
+    double tip;
     char *comment; /* informação inútil ? */
     // stats
-    float cost;
+    double cost;
 } *Ride;
 
 Ride init_ride()
@@ -30,7 +30,7 @@ Ride init_ride()
     ride->user = NULL;
     ride->city = NULL;
     ride->comment = NULL;
-    ride->cost = 0.0f;
+    ride->cost = 0.0;
 
     return ride;
 }
@@ -47,7 +47,7 @@ Ride create_ride(char **fields)
     ride->distance = (unsigned short)str_to_int(fields[5]);
     ride->score_user = (unsigned short)str_to_int(fields[6]);
     ride->score_driver = (unsigned short)str_to_int(fields[7]);
-    ride->tip = str_to_float(fields[8]);
+    ride->tip = str_to_double(fields[8]);
     ride->comment = strdup(fields[9]);
 
     return ride;
@@ -93,17 +93,17 @@ unsigned short get_ride_distance(Ride ride)
     return ride->distance;
 }
 
-float get_ride_tip(Ride ride)
+double get_ride_tip(Ride ride)
 {
     return ride->tip;
 }
 
-float get_ride_cost(Ride ride)
+double get_ride_cost(Ride ride)
 {
     return ride->cost;
 }
 
-void set_ride_cost(Ride ride, float cost)
+void set_ride_cost(Ride ride, double cost)
 {
     ride->cost = cost;
 }
