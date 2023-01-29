@@ -154,7 +154,7 @@ test: tests/test-unit.c
 	@$(CC) $(FLAGS) $< -o $(TESTS_TARGET) -lm
 	@printf "%b" "$(OK_COLOR)$(OK_STRING) $(NO_COLOR)\n"
 	@if [ -d $(RESULT_DIR) ]; then \
-		./$(TESTS_TARGET) $(TEST_DIR) $(RESULT_DIR); \
+		./$(TESTS_TARGET) $(TEST_DIR) $(RESULT_DIR) $(INPUT); \
 	else \
 		printf "%b" "$(COMPILING_COLOR)$(RESULT_DIR) directory does not exist!$(NO_COLOR)\n"; \
 	fi
