@@ -177,6 +177,8 @@ int main(int argc, char **argv) {
 
     if (file_count1 != file_count2) {
         printf("\n%s%s and %s have a different number of files%s\n", YELLOW, argv[1], argv[2], NO_COLOR);
+        closedir(dir1);
+        closedir(dir2);
         return 1;
     }
 
