@@ -9,6 +9,7 @@
 #include "../includes/driver.h"
 #include "../includes/utils.h"
 #include "../includes/date.h"
+#include "../includes/vp_array.h"
 
 typedef struct drivers_catalog {
     GPtrArray *drivers_array;
@@ -26,7 +27,7 @@ void glib_wrapper_free_driver(gpointer driver) {
 Drivers_Catalog create_drivers_catalog() {
     Drivers_Catalog catalog = malloc(sizeof(struct drivers_catalog));
 
-    catalog->drivers_array = g_ptr_array_new(); // update to ptr array full?
+    catalog->drivers_array = g_ptr_array_new_full(10000, NULL);
     catalog->drivers_ht = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, glib_wrapper_free_driver);
     catalog->sort_mode = UNSORTED;
 
@@ -63,7 +64,7 @@ void insert_driver_in_catalog(char **fields, va_list args) {
     g_ptr_array_add(catalog->drivers_array, driver);
 }
 
-void update_driver_stats(char *driver_id, void **stats, Drivers_Catalog catalog) { // Improve function after input validation
+void update_driver_stats(char *driver_id, VPA *stats, Drivers_Catalog catalog) { // Improve function after input validation
     Driver driver = g_hash_table_lookup(catalog->drivers_ht, driver_id);
     set_driver_stats(driver, stats);
 }
@@ -109,10 +110,10 @@ static gint compare_drivers_by_average_rating(gconstpointer d1, gconstpointer d2
     if (!account_status1 && !account_status2)
         return 0;
 
-    double average_rating1 = get_driver_average_rating(driver1);
+    double average_rating1 = get_driver_average_rating(driver1, 7);
     unsigned short date1 = get_driver_latest_ride(driver1);
 
-    double average_rating2 = get_driver_average_rating(driver2);
+    double average_rating2 = get_driver_average_rating(driver2, 7);
     unsigned short date2 = get_driver_latest_ride(driver2);
 
     int nearly_equal = nearly_equal_fp_numbers(average_rating1, average_rating2, 0.00001f);
@@ -150,7 +151,7 @@ char *get_driver_q1(char *id, Drivers_Catalog catalog) { // change function and 
     char *name = get_driver_name(driver);
     char *gender = get_driver_gender(driver);
     char *age = get_driver_age(driver);
-    double average_rating = get_driver_average_rating(driver);
+    double average_rating = get_driver_average_rating(driver, 7);
     unsigned short total_rides = get_driver_total_rides(driver);
     double total_earned = get_driver_total_earned_money(driver);
 
@@ -178,7 +179,7 @@ char *get_q2(int n_drivers, Drivers_Catalog catalog) {
         Driver driver = g_ptr_array_index(catalog->drivers_array, i);
         driver_id = get_driver_id(driver);
         name = get_driver_name(driver);
-        average_rating = get_driver_average_rating(driver);
+        average_rating = get_driver_average_rating(driver, 7);
         fprintf(stream, "%s;%s;%0.3f\n", driver_id, name, average_rating);
         free(driver_id);
         free(name);

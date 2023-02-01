@@ -2,6 +2,7 @@
 #define DRIVER_H
 
 #include <stdbool.h>
+#include "../includes/vp_array.h"
 
 typedef struct driver *Driver;
 
@@ -19,7 +20,7 @@ char *get_driver_car_class(Driver driver);
 
 bool get_driver_account_status(Driver driver);
 
-double get_driver_average_rating (Driver driver);
+double get_driver_average_rating (Driver driver, int index);
 
 unsigned short get_driver_total_rides (Driver driver);
 
@@ -31,7 +32,7 @@ unsigned short get_driver_account_age(Driver driver);
 
 unsigned short get_driver_account_creation(Driver driver);
 
-void set_driver_stats(Driver driver, void **stats);
+void set_driver_stats(Driver driver, VPA *stats);
 
 void free_driver(Driver driver);
 
