@@ -4,20 +4,17 @@
 #include "../includes/date.h"
 #include "../includes/utils.h"
 
-typedef struct date
-{
+typedef struct date {
     int d, m, y;
 } Date;
 
-Date convert_string_to_date(char *date)
-{
+Date convert_string_to_date(char *date) {
     Date result;
     sscanf(date, "%d/%d/%d", &result.d, &result.m, &result.y);
     return result;
 }
 
-char *convert_date_to_string(Date d)
-{ // test new format
+char *convert_date_to_string(Date d) { // test new format
     char day[3];
     char month[3];
     char year[5];
@@ -32,8 +29,7 @@ char *convert_date_to_string(Date d)
     return result;
 }
 
-int is_valid_date(int day, int month, int year)
-{
+int is_valid_date(int day, int month, int year) {
     int month_days[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
     if (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0))
@@ -45,8 +41,7 @@ int is_valid_date(int day, int month, int year)
     return 1;
 }
 
-int count_leap_years(Date d)
-{
+int count_leap_years(Date d) {
     int years = d.y;
     // Check if the current year needs to be considered for the count of leap years or not
     if (d.m <= 2)
@@ -59,8 +54,7 @@ int count_leap_years(Date d)
     return (years / 4 - years / 100 + years / 400);
 }
 
-unsigned short date_to_int(char *date)
-{
+unsigned short date_to_int(char *date) {
     const int month_days[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     Date d = convert_string_to_date(date);
     // Number of days before d1 (1/1/1900) that is our reference date (number 0)
@@ -79,8 +73,7 @@ unsigned short date_to_int(char *date)
     return (n2 - n1);
 }
 
-char *int_to_date(unsigned short date)
-{
+char *int_to_date(unsigned short date) {
     Date d;
     char *result;
     // Number of days between 1 January 1900 and the date we want to find

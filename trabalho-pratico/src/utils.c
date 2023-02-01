@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <math.h>
 #include <limits.h>
+#include <ctype.h>
 #include "../includes/date.h"
 #include "../includes/utils.h"
 
@@ -102,6 +103,12 @@ int nearly_equal_fp_numbers(double f1, double f2, double epsilon) { // check if 
         return diff < (epsilon * __DBL_MIN__);
     else // use relative error
         return diff / fmin((absf1 + absf2), __DBL_MAX__) < epsilon;
+}
+
+char *lower_string(char *str) {
+    for (char *p = str; *p; p++)
+        *p = tolower(*p);
+    return str;
 }
 
 int first_occurrence_ptr_array_bsearch(GPtrArray *array, GCompareFunc compare_func, void *target, int search_bigger_nearest) {
