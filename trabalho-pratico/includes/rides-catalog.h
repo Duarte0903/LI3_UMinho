@@ -15,6 +15,8 @@ void sort_rides_by_city(Rides_Catalog catalog);
 
 void sort_rides_by_city_and_driver_id(Rides_Catalog catalog);
 
+void sort_rides_by_account_age(Rides_Catalog catalog, gpointer array_with_catalog_pointers);
+
 char *get_q4(char *city, Rides_Catalog catalog);
 
 char *get_q5(unsigned short start_date, unsigned short end_date, Rides_Catalog catalog);
@@ -23,17 +25,9 @@ char *get_q6(char *city, unsigned short start_date, unsigned short end_date, Rid
 
 char *get_q7(unsigned short output_number, char *city, va_list args);
 
-void sort_rides_by_distance(GPtrArray *arr);
+char *get_q8(char *gender, int minimum_age, Rides_Catalog rides_catalog, gpointer catalog_pointer_extra_data);
 
-int get_rides_first_date(Rides_Catalog catalog, unsigned short first_date);
-
-int get_rides_last_date(Rides_Catalog catalog, unsigned short last_date);
-
-int get_last_ride_w_nonzero_tip(GPtrArray *arr);
-
-void copy_rides_to_results_array(Rides_Catalog catalog, int first_elem, int last_elem, GPtrArray *arr);
-
-char *get_q9(int index, GPtrArray *arr); 
+char *get_q9(unsigned short start_date, unsigned short end_date, Rides_Catalog catalog);
 
 void free_rides_catalog(Rides_Catalog catalog);
 

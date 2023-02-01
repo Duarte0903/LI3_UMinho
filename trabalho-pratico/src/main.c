@@ -13,6 +13,7 @@
 #define N_DRIVER_FIELDS 9
 #define N_RIDE_FIELDS 10
 #define MAX_QUERY_ARGS 4
+#define N_CATALOGS 3
 
 int main(int argc, char **argv)
 {
@@ -52,7 +53,7 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        print_waiting_on_catalogs();
+        start_ncurses_print_waiting_on_catalogs();
 
         char *users_file = get_file(data_path, "/users.csv");
         char *drivers_file = get_file(data_path, "/drivers.csv");
@@ -66,6 +67,8 @@ int main(int argc, char **argv)
         parse_file(drivers_file, N_DRIVER_FIELDS, is_valid_driver, insert_driver_in_catalog, drivers_catalog);
         parse_file(rides_file, N_RIDE_FIELDS, is_valid_ride, insert_ride_in_catalog, rides_catalog, users_catalog, drivers_catalog);
 
+        launch_main_interface(N_CATALOGS, users_catalog, drivers_catalog, rides_catalog);
+
         free(data_path);
         free_users_catalog(users_catalog);
         free_drivers_catalog(drivers_catalog);
@@ -73,8 +76,6 @@ int main(int argc, char **argv)
         free(users_file);
         free(drivers_file);
         free(rides_file);
-
-        endwin();
     }
     return 0;
 }

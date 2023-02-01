@@ -265,7 +265,7 @@ void free_big_char(char **ch)
     free(ch);
 }
 
-void print_string_big_chars(char *str, int starty, int startx)
+void print_string_big_chars(WINDOW *win, char *str, int starty, int startx)
 {
     int i = 0, j = 0;
     int initial_y = starty; //, initial_x = startx;
@@ -276,7 +276,7 @@ void print_string_big_chars(char *str, int starty, int startx)
         ch = get_big_char(str[i]);
         for (j = 0; j < 7; j++)
         {
-            mvprintw(starty, startx, ch[j]);
+            mvwprintw(win, starty, startx, ch[j]);
             starty += 1;
         }
         refresh();

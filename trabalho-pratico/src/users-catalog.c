@@ -11,22 +11,29 @@
 typedef struct users_catalog {
     GPtrArray *users_array;
     GHashTable *users_ht;
+    enum sort_mode {
+        UNSORTED,
+        DISTANCE
+    } sort_mode;
 } *Users_Catalog;
 
 void glib_wrapper_free_user(gpointer user) {
     free_user(user);
 }
 
-Users_Catalog create_users_catalog() {
+Users_Catalog create_users_catalog()
+{
     Users_Catalog catalog = malloc(sizeof(struct users_catalog));
 
     catalog->users_array = g_ptr_array_new(); // update to ptr array full?
     catalog->users_ht = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, glib_wrapper_free_user);
+    catalog->sort_mode = UNSORTED;
 
     return catalog;
 }
 
-int is_valid_user(char **fields) {
+int is_valid_user(char **fields)
+{
     if (IS_EMPTY(fields[0]) || IS_EMPTY(fields[1]) || IS_EMPTY(fields[2]) || IS_EMPTY(fields[5]))
         return 0;
 
@@ -44,53 +51,95 @@ int is_valid_user(char **fields) {
     return 1;
 }
 
-void insert_user_in_catalog(char **fields, va_list args) {
+void insert_user_in_catalog(char **fields, va_list args)
+{
     Users_Catalog catalog = va_arg(args, Users_Catalog);
     User user = create_user(fields);
     char *key = get_user_username(user);
-    
+
     g_hash_table_insert(catalog->users_ht, key, user);
     g_ptr_array_add(catalog->users_array, user);
 }
 
-void update_user_stats(char *username, void **stats, Users_Catalog catalog) { // Improve function after input validation 
+void update_user_stats(char *username, void **stats, Users_Catalog catalog)
+{ // Improve function after input validation
     User user = g_hash_table_lookup(catalog->users_ht, username);
     set_user_stats(user, stats);
 }
 
+char *get_user_gender_username(char *username, Users_Catalog catalog)
+{
+    User user = g_hash_table_lookup(catalog->users_ht, username);
+    return get_user_gender(user);
+}
+
+char *get_user_name_username(char *username, Users_Catalog catalog)
+{
+    User user = g_hash_table_lookup(catalog->users_ht, username);
+    return get_user_name(user);
+}
+
+bool get_user_account_status_username(char *username, Users_Catalog catalog)
+{
+    User user = g_hash_table_lookup(catalog->users_ht, username);
+    return get_user_account_status(user);
+}
+
 static gint compare_users_by_distance(gconstpointer u1, gconstpointer u2) {
-    int result;
     User user1 = *(User *)u1;
     User user2 = *(User *)u2;
 
+    bool account_status1 = get_user_account_status(user1);
+    bool account_status2 = get_user_account_status(user2);
+
+    if (account_status1 && !account_status2)
+        return -1;
+    
+    if (!account_status1 && account_status2)
+        return 1;
+
+    if (!account_status1 && !account_status2)
+        return 0;
+
     unsigned short dist1 = get_user_total_distance(user1);
     unsigned short date1 = get_user_latest_ride(user1);
-    char *username1 = get_user_username(user1);
-
+    
     unsigned short dist2 = get_user_total_distance(user2);
     unsigned short date2 = get_user_latest_ride(user2);
-    char *username2 = get_user_username(user2);
-
+    
+    int result;
+    // Descending order: distance, date
+    // Ascending order: username
     if (dist1 < dist2 || (dist1 == dist2 && date1 < date2))
-        result = 1; // ordem decrescente
-
-    if (dist1 > dist2 || (dist1 == dist2 && date1 > date2))
-        result = -1; // ordem decrescente
-
-    if (dist1 == dist2 && date1 == date2)
+        result = 1;
+    else if (dist1 > dist2 || (dist1 == dist2 && date1 > date2))
+        result = -1;
+    else {
+        char *username1 = get_user_username(user1);
+        char *username2 = get_user_username(user2);
         result = strcmp(username1, username2);
-
-    free(username1);
-    free(username2);
+        free(username1);
+        free(username2);
+    }
 
     return result;
 }
 
 void sort_users_by_distance(Users_Catalog catalog) {
-    g_ptr_array_sort(catalog->users_array, compare_users_by_distance);
+    if (catalog->sort_mode != DISTANCE) {
+        g_ptr_array_sort(catalog->users_array, compare_users_by_distance);
+        catalog->sort_mode = DISTANCE;
+    }
 }
 
-char *get_user_q1(char *username, Users_Catalog catalog) { // change function and output variable name
+unsigned short get_user_account_age_w_username(char *username, Users_Catalog catalog)
+{
+    User user = g_hash_table_lookup(catalog->users_ht, username);
+    return get_user_account_age(user);
+}
+
+char *get_user_q1(char *username, Users_Catalog catalog)
+{ // change function and output variable name
     User user = g_hash_table_lookup(catalog->users_ht, username);
 
     if (!user || !get_user_account_status(user))
@@ -113,22 +162,27 @@ char *get_user_q1(char *username, Users_Catalog catalog) { // change function an
     return user_str;
 }
 
-char *get_q3(int index, Users_Catalog catalog) { // change function name
-    User user = g_ptr_array_index(catalog->users_array, index);
-    bool account_status = get_user_account_status(user);
+char *get_q3(int n_users, Users_Catalog catalog) { // change function name
+    if (n_users > (int)catalog->users_array->len)
+        n_users = catalog->users_array->len;
 
-    if (!account_status) // change compare function
-        return NULL;
+    char* result = NULL;
+    size_t result_size = 0;
+    FILE* stream = open_memstream(&result, &result_size);
+    char *username = NULL, *name = NULL;
+    unsigned short total_distance;
 
-    char *username = get_user_username(user);
-    char *name = get_user_name(user);
-    unsigned short total_distance = get_user_total_distance(user);
+    for (int i = 0; i < n_users; i++) {
+        User user = g_ptr_array_index(catalog->users_array, i);
+        username = get_user_username(user);
+        name = get_user_name(user);
+        total_distance = get_user_total_distance(user);
+        fprintf(stream, "%s;%s;%hu\n", username, name, total_distance);
+        free(username);
+        free(name);
+    }
 
-    char *result = malloc(strlen(username) + strlen(name) + 20 + 2 + 1);
-    sprintf(result, "%s;%s;%hu", username, name, total_distance);
-
-    free(username);
-    free(name);
+    fclose(stream);
 
     return result;
 }
