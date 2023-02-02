@@ -1,7 +1,8 @@
 #include <stdlib.h>
-#include <ncurses.h>
+#include <curses.h>
 #include <string.h>
 #include <ctype.h>
+#include "../includes/interface/chars.h"
 
 char **get_big_char(char ch)
 {
@@ -251,6 +252,15 @@ char **get_big_char(char ch)
         result[4] = strdup("       ");
         result[5] = strdup("       ");
         result[6] = strdup("       ");
+        break;
+    case '3':
+        result[0] = strdup("###### ");
+        result[1] = strdup("      #");
+        result[2] = strdup("      #");
+        result[3] = strdup("###### ");
+        result[4] = strdup("      #");
+        result[5] = strdup("      #");
+        result[6] = strdup("###### ");
     }
     return result;
 }
@@ -271,7 +281,7 @@ void print_string_big_chars(WINDOW *win, char *str, int starty, int startx)
     int initial_y = starty; //, initial_x = startx;
     char **ch = NULL;
 
-    for (i = 0; i < strlen(str); i++)
+    for (i = 0; i < (int)strlen(str); i++)
     {
         ch = get_big_char(str[i]);
         for (j = 0; j < 7; j++)

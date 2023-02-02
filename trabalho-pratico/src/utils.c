@@ -32,47 +32,6 @@ char *get_file(char *path, const char *file)
     return result;
 }
 
-char **get_paginated_output(char *str, int n_lines) // need to redo this
-{
-    int lines = 1, lines_counter = 1;
-    for (int i = 0; i < strlen(str); i++)
-    {
-        if (str[i] == '\n')
-            lines++;
-    }
-
-    int n_elems = ceil((double)lines / n_lines);
-
-    char **result = malloc(sizeof(char *) * (n_elems + 1));
-    int index = 0;
-    int counter = 0;
-
-    char *line = NULL;
-    char *str_copy = strdup(str);
-    char *save = str_copy;
-    result[index] = malloc(100 * n_lines * sizeof(char));
-    result[index][0] = '\0';
-
-    while ((line = strsep(&str_copy, "\n")) != NULL)
-    {
-        sprintf(result[index] + strlen(result[index]), "%s\n", line);
-        counter++;
-        lines_counter++;
-
-        if (counter == n_lines && lines_counter <= lines) // checking bounds, there are cases when the string is finished and it mallocs all the same
-        {
-            index++;
-            result[index] = malloc(100 * n_lines * sizeof(char));
-            result[index][0] = '\0';
-            counter = 0;
-        }
-    }
-    result[index + 1] = "\0";
-    free(save);
-
-    return result;
-}
-
 int is_positive_integer(char *str)
 {
     char *end_ptr = str;

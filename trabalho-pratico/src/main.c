@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <ncurses.h>
+#include <curses.h>
 #include "../includes/parser.h"
 #include "../includes/utils.h"
 #include "../includes/users-catalog.h"
 #include "../includes/drivers-catalog.h"
 #include "../includes/rides-catalog.h"
-#include "../includes/interactive.h"
+#include "../includes/interface/interactive.h"
 
 #define N_USER_FIELDS 7
 #define N_DRIVER_FIELDS 9
@@ -49,11 +49,12 @@ int main(int argc, char **argv)
 
         if (!data_path)
         {
+            endwin();
             printf("No dataset selected.\nExiting interactive mode.\n");
             return 1;
         }
 
-        start_ncurses_print_waiting_on_catalogs();
+        print_waiting_on_catalogs();
 
         char *users_file = get_file(data_path, "/users.csv");
         char *drivers_file = get_file(data_path, "/drivers.csv");

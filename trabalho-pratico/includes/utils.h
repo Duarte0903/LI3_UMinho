@@ -11,8 +11,6 @@ unsigned short get_age_no_ref(unsigned short birth_date);
 
 char *get_file(char *path, const char *file);
 
-char **get_paginated_output(char *str, int n_lines);
-
 int is_positive_integer(char *str);
 
 int is_non_negative_double(char *str);

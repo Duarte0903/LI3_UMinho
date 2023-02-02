@@ -421,8 +421,8 @@ char *get_q4(char *city, Rides_Catalog catalog) {
     }
     average_price_in_city /= n_rides_in_city;
 
-    char *result = malloc(11 * sizeof(char));
-    sprintf(result, "%.3f", average_price_in_city);
+    char *result = malloc(12 * sizeof(char));
+    sprintf(result, "%.3f\n", average_price_in_city);
 
     return result;
 }
@@ -442,8 +442,8 @@ char *get_q5(unsigned short start_date, unsigned short end_date, Rides_Catalog c
     }
     average_price /= n_rides;
 
-    char *result = malloc(11 * sizeof(char)); // 10 average price, 1 \0
-    sprintf(result, "%.3f", average_price);
+    char *result = malloc(12 * sizeof(char)); // 10 average price, 1 \0
+    sprintf(result, "%.3f\n", average_price);
 
     return result;
 }
@@ -475,8 +475,8 @@ char *get_q6(char *city, unsigned short start_date, unsigned short end_date, Rid
 
     average_distance_in_city /= n_rides_in_city;
 
-    char *result = malloc(11 * sizeof(char));
-    sprintf(result, "%.3f", average_distance_in_city);
+    char *result = malloc(12 * sizeof(char));
+    sprintf(result, "%.3f\n", average_distance_in_city);
 
     return result;
 }

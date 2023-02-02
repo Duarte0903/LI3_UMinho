@@ -31,7 +31,7 @@ void print_q1(Output_Type output_struct, char **fields, va_list args)
 
     if (output && !output_struct->interactive)
     {
-        fprintf(output_struct->Type.fp, "%s\n", output); // Optimize to fwrite?
+        fprintf(output_struct->Type.fp, "%s", output); // Optimize to fwrite?
         free(output);
     }
     else if (output_struct->interactive)
@@ -122,7 +122,7 @@ void print_q4(Output_Type output_struct, char **fields, va_list args)
 
     if (output && !output_struct->interactive)
     {
-        fprintf(output_struct->Type.fp, "%s\n", output); // Optimize to fwrite?
+        fprintf(output_struct->Type.fp, "%s", output); // Optimize to fwrite?
         free(output);
     }
     else if (output_struct->interactive)
@@ -156,7 +156,7 @@ void print_q5(Output_Type output_struct, char **fields, va_list args)
 
     if (output && !output_struct->interactive)
     {
-        fprintf(output_struct->Type.fp, "%s\n", output); // Optimize to fwrite?
+        fprintf(output_struct->Type.fp, "%s", output); // Optimize to fwrite?
         free(output);
     }
     else if (output_struct->interactive)
@@ -191,7 +191,7 @@ void print_q6(Output_Type output_struct, char **fields, va_list args)
 
     if (output && !output_struct->interactive)
     {
-        fprintf(output_struct->Type.fp, "%s\n", output); // Optimize to fwrite?
+        fprintf(output_struct->Type.fp, "%s", output); // Optimize to fwrite?
         free(output);
     }
     else if (output_struct->interactive)

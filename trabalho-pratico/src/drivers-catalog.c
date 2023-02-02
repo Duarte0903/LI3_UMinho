@@ -154,8 +154,8 @@ char *get_driver_q1(char *id, Drivers_Catalog catalog) { // change function and 
     unsigned short total_rides = get_driver_total_rides(driver);
     double total_earned = get_driver_total_earned_money(driver);
 
-    char *driver_str = malloc(strlen(name) + strlen(gender) + strlen(age) + 5 + 10 + 10 + 5 + 1); // 5 de rating, 10 de total_rides, 10 de money, 5 dos ;, 1 do \0
-    sprintf(driver_str, "%s;%s;%s;%.3f;%hu;%.3f", name, gender, age, average_rating, total_rides, total_earned);
+    char *driver_str = malloc(strlen(name) + strlen(gender) + strlen(age) + 5 + 10 + 10 + 5 + 2); // 5 de rating, 10 de total_rides, 10 de money, 5 dos ;, 2 do \n e \0
+    sprintf(driver_str, "%s;%s;%s;%.3f;%hu;%.3f\n", name, gender, age, average_rating, total_rides, total_earned);
 
     free(name);
     free(gender);

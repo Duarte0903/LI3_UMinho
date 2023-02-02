@@ -1,14 +1,15 @@
-#include <ncurses.h>
+#include <curses.h>
+#include <locale.h>
 #include <string.h>
 #include <stdarg.h>
 #include <math.h>
-#include "../includes/interactive.h"
+#include "../includes/interface/interactive.h"
 #include "../includes/parser.h"
 #include "../includes/utils.h"
 #include "../includes/users-catalog.h"
 #include "../includes/drivers-catalog.h"
 #include "../includes/rides-catalog.h"
-#include "../includes/chars.h"
+#include "../includes/interface/chars.h"
 
 #define MAX_QUERY_ARGS 4
 
@@ -60,15 +61,16 @@ void clear_window_contents(WINDOW *win)
 
 void print_page(WINDOW *win, int starty, int startx, int output_lines, char *str)
 {
-    int i = 0, len = strlen(str);
     char *ptr = str;
     char *line = malloc(100 * sizeof(char));
 
-    for (; starty < 0; ptr++)
+    while (starty < 0)
     {
-        if (ptr[i] == '\n')
+        if (ptr[0] == '\n')
             starty++;
+        ptr++;
     }
+
     while (sscanf(ptr, "%[^\n]\n", line) == 1 && starty <= output_lines)
     {
         mvwaddstr(win, starty, startx, line);
@@ -79,11 +81,12 @@ void print_page(WINDOW *win, int starty, int startx, int output_lines, char *str
     free(line);
 }
 
-char *choose_dataset()
+char *choose_dataset() // starts ncurses on main
 {
     initscr();
     noecho();
     keypad(stdscr, TRUE);
+    curs_set(0);
 
     int choice;
     int highlight = 0;
@@ -93,8 +96,8 @@ char *choose_dataset()
 
     print_string_big_chars(stdscr, "Choose a dataset", starty_title, startx_title);
 
-    WINDOW *c1 = create_newwin(LINES / 8, COLS / 4, LINES / 2 - 2 * LINES / 8, COLS / 2 - COLS / 8); // used the macros in order to allow some resizing
-    WINDOW *c2 = create_newwin(LINES / 8, COLS / 4, LINES / 2 - LINES / 8, COLS / 2 - COLS / 8);     // strings here are bigger so there will be issues with printing them on certain resolutions
+    WINDOW *c1 = create_newwin(LINES / 8, COLS / 4, LINES / 2 - 2 * LINES / 8, COLS / 2 - COLS / 8); // used the macros in order to allow some limited resizing
+    WINDOW *c2 = create_newwin(LINES / 8, COLS / 4, LINES / 2 - LINES / 8, COLS / 2 - COLS / 8);
     WINDOW *c3 = create_newwin(LINES / 8, COLS / 4, LINES / 2, COLS / 2 - COLS / 8);
     WINDOW *c4 = create_newwin(LINES / 8, COLS / 4, LINES / 2 + LINES / 8, COLS / 2 - COLS / 8);
     WINDOW *c5 = create_newwin(LINES / 8, COLS / 4, LINES / 2 + 2 * LINES / 8, COLS / 2 - COLS / 8);
@@ -191,22 +194,17 @@ char *choose_dataset()
     }
 
     clear();
-    endwin();
 
     return data_path;
 }
 
-void start_ncurses_print_waiting_on_catalogs() // basically a wrapper to start ncurses mode on main.c and print, might change
+void print_waiting_on_catalogs()
 {
-    initscr();
-    noecho();
-
     print_string_big_chars(stdscr, "Building Catalogs", LINES / 2 - 4, COLS / 2 - (strlen("Building Catalogs") * 8) / 2); // 4 because the length of a big char is 7 and 4 is close to half of that, leaving it somewhat centered
 }
 
 void display_query_results(WINDOW *border_win, char *input, ...)
 {
-    int i = 0;
     noecho();
     va_list args;
     va_start(args, input);
@@ -220,24 +218,21 @@ void display_query_results(WINDOW *border_win, char *input, ...)
 
     Output_Type output_struct = parse_query_interactive(input, MAX_QUERY_ARGS, args);
 
+    setlocale(LC_ALL, "");
+
     int lines = 1;
-    for (i = 0; i < strlen(output_struct->Type.str); i++)
+    for (int i = 0; i < (int)strlen(output_struct->Type.str); i++)
     {
         if (output_struct->Type.str[i] == '\n')
             lines++;
     }
     int n_pages = ceil((double)lines / output_lines);
 
-    // so, try messing around with starty so that you don't have to divide the string, only show what you want seen
-
-    // char **paginated_output = get_paginated_output(output_struct->Type.str, output_lines - 2); //-2 to add spaces at the top and bottom
-    // int n_pages = 0;
-    // for (n_pages = 0; strcmp(paginated_output[n_pages], "\0"); n_pages++)
-    //     ;
-
     print_page(win, 0, 0, output_lines, output_struct->Type.str);
+    mvprintw(LINES / 4 - 1, COLS / 4, "1 of %d", n_pages);
+    mvprintw(LINES / 4 - 1, 3 * COLS / 4 - strlen("Use the arrow keys"), "Use the arrow keys");
 
-    int y_setter = 0;
+        int y_setter = 0; // this multiplies by (-output_lines) in order to have the starting y of the string placed in a way that the window and the correct chunk of the string match each other
     int cycle_flag = 1;
     while (cycle_flag)
     {
@@ -252,6 +247,8 @@ void display_query_results(WINDOW *border_win, char *input, ...)
             }
             wclear(win);
             print_page(win, (-output_lines) * y_setter, 0, output_lines, output_struct->Type.str);
+            mvprintw(LINES / 4 - 1, COLS / 4, "%d of %d", y_setter + 1, n_pages);
+            refresh();
             break;
         case KEY_LEFT:
             y_setter--;
@@ -261,10 +258,15 @@ void display_query_results(WINDOW *border_win, char *input, ...)
             }
             wclear(win);
             print_page(win, (-output_lines) * y_setter, 0, output_lines, output_struct->Type.str);
+            mvprintw(LINES / 4 - 1, COLS / 4, "%d of %d", y_setter + 1, n_pages);
+            refresh();
             break;
         case 10:
+            move(LINES / 4 - 1, COLS / 4);
+            clrtoeol();
             wclear(win);
             wrefresh(win);
+            refresh();
             cycle_flag = 0;
             break;
         }
@@ -272,12 +274,6 @@ void display_query_results(WINDOW *border_win, char *input, ...)
     va_end(args);
     free(output_struct->Type.str);
     free(output_struct);
-
-    // for (i = 0; i < n_pages; i++)
-    // {
-    //     free(paginated_output[i]);
-    // }
-    // free(paginated_output);
 }
 
 void launch_queries_interface(Users_Catalog users_catalog, Drivers_Catalog drivers_catalog, Rides_Catalog rides_catalog)
@@ -285,11 +281,12 @@ void launch_queries_interface(Users_Catalog users_catalog, Drivers_Catalog drive
     clear();
     print_string_big_chars(stdscr, "Queries", 1, COLS / 2 - (strlen("Queries") * 8) / 2);
 
-    mvprintw(9, COLS / 2 - strlen("Type 'exit' to quit.") / 2, "Type 'exit' to quit."); // 9 = 7 + 2, 7 is the length of a char in the title
-    move(LINES - LINES / 16, COLS / 4);                                                 // moves the cursos, dimensions are like this so that the cursor ends up somwere below the results window
+    mvprintw(9, COLS / 2 - strlen("Type 'exit' to quit.") / 2, "Type 'exit' to quit.");
+    move(LINES - LINES / 16, COLS / 4);
+    refresh();
 
     WINDOW *input_window = newwin(LINES / 16, COLS / 2, LINES - LINES / 16, COLS / 4);
-    WINDOW *output_window = create_newwin(LINES / 1.5, COLS / 2, LINES / 4, COLS / 4); // dividing by 1.5 and 2 so that it's a rectangle which takes up most of the window and allows for some freedom in resolution, dividing by four so that it's centered (starty and startx are the top left corner)
+    WINDOW *output_window = create_newwin(LINES / 1.5, COLS / 2, LINES / 4, COLS / 4); // dividing by 1.5 and 2 so that it's a rectangle which takes up most of the window and allows for some limited freedom in resolution, dividing by four so that it's centered (starty and startx are the top left corner)
 
     int query_number;
     char remaining_input;
@@ -297,7 +294,9 @@ void launch_queries_interface(Users_Catalog users_catalog, Drivers_Catalog drive
     do
     {
         echo();
+        curs_set(1);
         wgetstr(input_window, str);
+        curs_set(0);
 
         if (sscanf(str, "%d %c", &query_number, &remaining_input) == 2)
         {
@@ -328,17 +327,16 @@ void launch_main_interface(int n_args, ...)
     int highlight = 0;
     int cycle_flag = 1;
 
-    while (cycle_flag) // clearly not the most efficient but printing inside the loop everytime deals with all issues regarding going back and forth between menus
+    while (cycle_flag)
     {
 
-        print_string_big_chars(stdscr, "LABS", 1, COLS / 2 - (strlen("LABS") * 8) / 2); // change LABS and for some reason, printing this after the windows makes them not print properly
+        print_string_big_chars(stdscr, "Uber Database", 5, COLS / 2 - (strlen("Uber Database") * 8) / 2);
+        print_string_big_chars(stdscr, "LI3", LINES - 5 * 2, COLS / 2 - (strlen("LI3") * 8) / 2);
 
-        WINDOW *queries_option = create_newwin(LINES / 8, COLS / 4, LINES / 2 - LINES / 8, COLS / 2 - COLS / 8); // using the macros instead of simple numbers in order to allow some resizing
-        WINDOW *catalogs_option = create_newwin(LINES / 8, COLS / 4, LINES / 2, COLS / 2 - COLS / 8);            // these dimensions seem appropriate for menu choices
-        WINDOW *quit_window = create_newwin(LINES / 8, COLS / 4, LINES / 2 + LINES / 8, COLS / 2 - COLS / 8);
+        WINDOW *queries_option = create_newwin(LINES / 8, COLS / 4, LINES / 2 - LINES / 8, COLS / 2 - COLS / 8); // using the macros instead of simple numbers in order to allow some limited resizing
+        WINDOW *quit_window = create_newwin(LINES / 8, COLS / 4, LINES / 2, COLS / 2 - COLS / 8);
 
         print_in_window_centered(queries_option, "Execute Queries", 0);
-        print_in_window_centered(catalogs_option, "Print Catalogs", 0);
         print_in_window_centered(quit_window, "Quit", 0);
 
         refresh();
@@ -349,11 +347,6 @@ void launch_main_interface(int n_args, ...)
             refresh();
         }
         else if (highlight == 1)
-        {
-            print_in_window_centered(catalogs_option, "Print Catalogs", 1);
-            refresh();
-        }
-        else if (highlight == 2)
         {
             print_in_window_centered(quit_window, "Quit", 1);
             refresh();
@@ -370,17 +363,15 @@ void launch_main_interface(int n_args, ...)
                 highlight = 0;
             };
             delete_window(queries_option);
-            delete_window(catalogs_option);
             delete_window(quit_window);
             break;
         case KEY_DOWN:
             highlight++;
-            if (highlight >= 2)
+            if (highlight >= 1)
             {
-                highlight = 2;
+                highlight = 1;
             };
             delete_window(queries_option);
-            delete_window(catalogs_option);
             delete_window(quit_window);
             break;
         case 10:
@@ -390,11 +381,8 @@ void launch_main_interface(int n_args, ...)
             }
             else if (highlight == 1)
             {
-            }
-            else if (highlight == 2)
-            {
                 cycle_flag = 0;
-            };
+            }
             break;
         }
     }
