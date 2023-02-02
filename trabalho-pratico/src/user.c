@@ -6,6 +6,7 @@
 #include "../includes/user.h"
 #include "../includes/date.h"
 #include "../includes/utils.h"
+#include "../includes/vp_array.h"
 
 #define REF_DAY "9/10/2022"
 
@@ -15,11 +16,10 @@ typedef struct user {
     char *gender;
     unsigned short birth_date;
     unsigned short account_creation;
-    char *pay_method;
     bool account_status;
 
     struct user_stats {
-        double average_rating;
+        unsigned int total_rating;
         unsigned short total_rides;
         double total_spent_money;
         unsigned short total_distance;
@@ -34,9 +34,8 @@ User init_user() {
     user->username = NULL;
     user->name = NULL;
     user->gender = NULL;
-    user->pay_method = NULL;
     user->account_status = true;
-    user->stats.average_rating = 0.0;
+    user->stats.total_rating = 0;
     user->stats.total_rides = 0;
     user->stats.total_spent_money = 0.0;
     user->stats.total_distance = 0;
@@ -54,7 +53,6 @@ User create_user(char **fields) {
     user->gender = strdup(fields[2]);
     user->birth_date = date_to_int(fields[3]);
     user->account_creation = date_to_int(fields[4]);
-    user->pay_method = strdup(fields[5]);
     user->stats.account_age = date_to_int(REF_DAY) - user->account_creation;
 
     if (strcasecmp(fields[6], "active\n")) /* return = 0 --> str1 == str2 */
@@ -84,7 +82,7 @@ bool get_user_account_status(User user) {
 }
 
 double get_user_average_rating(User user) {
-    return user->stats.average_rating;
+    return (double)user->stats.total_rating / user->stats.total_rides;
 }
 
 unsigned short get_user_total_rides(User user) {
@@ -107,20 +105,19 @@ unsigned short get_user_account_age(User user) {
     return user->stats.account_age;
 }
 
-void set_user_stats(User user, void **stats) {
-    unsigned short user_score = *(unsigned short *)stats[0];
-    double new_average_rating = (user->stats.average_rating * user->stats.total_rides + user_score) / (user->stats.total_rides + 1);
-    user->stats.average_rating = new_average_rating;
+void set_user_stats(User user, VPA *stats) {
+    unsigned short user_score = *(unsigned short *)vpa_get(stats, 0);
+    user->stats.total_rating += user_score;
 
     user->stats.total_rides++;
 
-    double ride_cost_w_tip = *(double *)stats[1];
+    double ride_cost_w_tip = *(double *)vpa_get(stats, 1);
     user->stats.total_spent_money += ride_cost_w_tip;
 
-    unsigned short ride_distance = *(unsigned short *)stats[2];
+    unsigned short ride_distance = *(unsigned short *)vpa_get(stats, 2);
     user->stats.total_distance += ride_distance;
 
-    unsigned short ride_date = *(unsigned short *)stats[3];
+    unsigned short ride_date = *(unsigned short *)vpa_get(stats, 3);
     if (user->stats.latest_ride < ride_date)
         user->stats.latest_ride = ride_date;
 }
@@ -129,6 +126,5 @@ void free_user(User user) {
     free(user->username);
     free(user->name);
     free(user->gender);
-    free(user->pay_method);
     free(user);
 }

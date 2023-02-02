@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <curses.h>
+#include <time.h>
 #include "../includes/parser.h"
 #include "../includes/utils.h"
 #include "../includes/users-catalog.h"
@@ -15,10 +16,8 @@
 #define MAX_QUERY_ARGS 4
 #define N_CATALOGS 3
 
-int main(int argc, char **argv)
-{
-    if (argc == 3)
-    {
+int main(int argc, char **argv) {
+    if (argc == 3) {
         char *data_path = argv[1];
         char *query_path = argv[2];
 
@@ -30,9 +29,23 @@ int main(int argc, char **argv)
         Drivers_Catalog drivers_catalog = create_drivers_catalog();
         Rides_Catalog rides_catalog = create_rides_catalog();
 
+        clock_t start_users = clock();
         parse_file(users_file, N_USER_FIELDS, is_valid_user, insert_user_in_catalog, users_catalog);
+        clock_t end_users = clock();
+        double time_users = (double)(end_users - start_users) / CLOCKS_PER_SEC;
+        printf("Users loaded in %.2f seconds\n", time_users);
+        
+        clock_t start_drivers = clock();
         parse_file(drivers_file, N_DRIVER_FIELDS, is_valid_driver, insert_driver_in_catalog, drivers_catalog);
+        clock_t end_drivers = clock();
+        double time_drivers = (double)(end_drivers - start_drivers) / CLOCKS_PER_SEC;
+        printf("Drivers loaded in %.2f seconds\n", time_drivers);
+        
+        clock_t start_rides = clock();
         parse_file(rides_file, N_RIDE_FIELDS, is_valid_ride, insert_ride_in_catalog, rides_catalog, users_catalog, drivers_catalog);
+        clock_t end_rides = clock();
+        double time_rides = (double)(end_rides - start_rides) / CLOCKS_PER_SEC;
+        printf("Rides loaded in %.2f seconds\n", time_rides);
 
         parse_query(query_path, MAX_QUERY_ARGS, users_catalog, drivers_catalog, rides_catalog);
 

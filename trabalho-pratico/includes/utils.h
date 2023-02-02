@@ -21,6 +21,8 @@ double str_to_double(char *str);
 
 int nearly_equal_fp_numbers(double f1, double f2, double epsilon);
 
+char *lower_string(char *str);
+
 int first_occurrence_ptr_array_bsearch(GPtrArray *array, GCompareFunc compare_func, void *target, int search_bigger_nearest);
 
 int last_occurrence_ptr_array_bsearch(GPtrArray *array, GCompareFunc compare_func, void *target, int search_smaller_nearest);

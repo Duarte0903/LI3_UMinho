@@ -7,6 +7,7 @@
 #include "../includes/user.h"
 #include "../includes/utils.h"
 #include "../includes/date.h"
+#include "../includes/vp_array.h"
 
 typedef struct users_catalog {
     GPtrArray *users_array;
@@ -21,19 +22,17 @@ void glib_wrapper_free_user(gpointer user) {
     free_user(user);
 }
 
-Users_Catalog create_users_catalog()
-{
+Users_Catalog create_users_catalog() {
     Users_Catalog catalog = malloc(sizeof(struct users_catalog));
 
-    catalog->users_array = g_ptr_array_new(); // update to ptr array full?
+    catalog->users_array = g_ptr_array_new_full(100000, NULL);
     catalog->users_ht = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, glib_wrapper_free_user);
     catalog->sort_mode = UNSORTED;
 
     return catalog;
 }
 
-int is_valid_user(char **fields)
-{
+int is_valid_user(char **fields) {
     if (IS_EMPTY(fields[0]) || IS_EMPTY(fields[1]) || IS_EMPTY(fields[2]) || IS_EMPTY(fields[5]))
         return 0;
 
@@ -51,8 +50,7 @@ int is_valid_user(char **fields)
     return 1;
 }
 
-void insert_user_in_catalog(char **fields, va_list args)
-{
+void insert_user_in_catalog(char **fields, va_list args) {
     Users_Catalog catalog = va_arg(args, Users_Catalog);
     User user = create_user(fields);
     char *key = get_user_username(user);
@@ -61,26 +59,22 @@ void insert_user_in_catalog(char **fields, va_list args)
     g_ptr_array_add(catalog->users_array, user);
 }
 
-void update_user_stats(char *username, void **stats, Users_Catalog catalog)
-{ // Improve function after input validation
+void update_user_stats(char *username, VPA *stats, Users_Catalog catalog) { // Improve function after input validation
     User user = g_hash_table_lookup(catalog->users_ht, username);
     set_user_stats(user, stats);
 }
 
-char *get_user_gender_username(char *username, Users_Catalog catalog)
-{
+char *get_user_gender_username(char *username, Users_Catalog catalog) {
     User user = g_hash_table_lookup(catalog->users_ht, username);
     return get_user_gender(user);
 }
 
-char *get_user_name_username(char *username, Users_Catalog catalog)
-{
+char *get_user_name_username(char *username, Users_Catalog catalog) {
     User user = g_hash_table_lookup(catalog->users_ht, username);
     return get_user_name(user);
 }
 
-bool get_user_account_status_username(char *username, Users_Catalog catalog)
-{
+bool get_user_account_status_username(char *username, Users_Catalog catalog) {
     User user = g_hash_table_lookup(catalog->users_ht, username);
     return get_user_account_status(user);
 }
@@ -94,7 +88,7 @@ static gint compare_users_by_distance(gconstpointer u1, gconstpointer u2) {
 
     if (account_status1 && !account_status2)
         return -1;
-    
+
     if (!account_status1 && account_status2)
         return 1;
 
@@ -103,10 +97,10 @@ static gint compare_users_by_distance(gconstpointer u1, gconstpointer u2) {
 
     unsigned short dist1 = get_user_total_distance(user1);
     unsigned short date1 = get_user_latest_ride(user1);
-    
+
     unsigned short dist2 = get_user_total_distance(user2);
     unsigned short date2 = get_user_latest_ride(user2);
-    
+
     int result;
     // Descending order: distance, date
     // Ascending order: username
@@ -132,14 +126,12 @@ void sort_users_by_distance(Users_Catalog catalog) {
     }
 }
 
-unsigned short get_user_account_age_w_username(char *username, Users_Catalog catalog)
-{
+unsigned short get_user_account_age_w_username(char *username, Users_Catalog catalog) {
     User user = g_hash_table_lookup(catalog->users_ht, username);
     return get_user_account_age(user);
 }
 
-char *get_user_q1(char *username, Users_Catalog catalog)
-{ // change function and output variable name
+char *get_user_q1(char *username, Users_Catalog catalog) { // change function and output variable name
     User user = g_hash_table_lookup(catalog->users_ht, username);
 
     if (!user || !get_user_account_status(user))
@@ -166,9 +158,9 @@ char *get_q3(int n_users, Users_Catalog catalog) { // change function name
     if (n_users > (int)catalog->users_array->len)
         n_users = catalog->users_array->len;
 
-    char* result = NULL;
+    char *result = NULL;
     size_t result_size = 0;
-    FILE* stream = open_memstream(&result, &result_size);
+    FILE *stream = open_memstream(&result, &result_size);
     char *username = NULL, *name = NULL;
     unsigned short total_distance;
 

@@ -25,8 +25,8 @@ Output_Type new_output_struct(bool interactive)
     return r;
 }
 
-void parse_line(const char *line, char **fields, char *delim)
-{
+
+void parse_line(const char *line, char **fields, char *delim) {
     int index = 0;
     char *line_copy = NULL;
     char *token = NULL;
@@ -38,13 +38,11 @@ void parse_line(const char *line, char **fields, char *delim)
         fields[index++] = token;
 }
 
-void parse_file(char *filename, int n_fields, int (*validation_function)(char **), void (*insertion_function)(char **, va_list), ...)
-{
+void parse_file(char *filename, int n_fields, int (*validation_function)(char **), void (*insertion_function)(char **, va_list), ...) {
     FILE *fptr = NULL;
     fptr = fopen(filename, "r");
 
-    if (fptr == NULL)
-    {
+    if (fptr == NULL) {
         perror("Error: Failed to open data file!\n");
         exit(EXIT_FAILURE);
     }
@@ -54,16 +52,13 @@ void parse_file(char *filename, int n_fields, int (*validation_function)(char **
     char *line = NULL;
     size_t len = 0;
     ssize_t nread; /* number of characters read, including the delimiter character */
-
     nread = getline(&line, &len, fptr); // 1st line is disposable
 
-    while ((nread = getline(&line, &len, fptr)) != -1)
-    {
+    while ((nread = getline(&line, &len, fptr)) != -1) {
         char **fields = malloc(sizeof(char *) * n_fields);
         parse_line(line, fields, ";");
 
-        if ((*validation_function)(fields))
-        {
+        if ((*validation_function)(fields)) {
             va_start(args, insertion_function); // Reset argument list
             (*insertion_function)(fields, args);
         }
@@ -77,13 +72,11 @@ void parse_file(char *filename, int n_fields, int (*validation_function)(char **
     fclose(fptr);
 }
 
-void parse_query(char *query_path, int max_args, ...)
-{
+void parse_query(char *query_path, int max_args, ...) {
     FILE *input_file = NULL;
     input_file = fopen(query_path, "r");
 
-    if (input_file == NULL)
-    {
+    if (input_file == NULL) {
         perror("Error: Failed to open queries file!\n");
         exit(EXIT_FAILURE);
     }
@@ -98,8 +91,7 @@ void parse_query(char *query_path, int max_args, ...)
     Output_Type output_struct = new_output_struct(false);
     int counter = 1;
 
-    while ((nread = getline(&line, &len, input_file)) != -1)
-    {
+    while ((nread = getline(&line, &len, input_file)) != -1) {
         char **fields = malloc(sizeof(char *) * max_args);
         parse_line(line, fields, " ");
 

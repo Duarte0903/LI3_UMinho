@@ -2,6 +2,7 @@
 #define USERS_CATALOG_H
 
 #include <stdbool.h>
+#include "../includes/vp_array.h"
 
 typedef struct users_catalog *Users_Catalog;
 
@@ -11,7 +12,7 @@ int is_valid_user(char **fields);
 
 void insert_user_in_catalog(char **fields, va_list args);
 
-void update_user_stats(char *username, void **stats, Users_Catalog catalog);
+void update_user_stats(char *username, VPA *stats, Users_Catalog catalog);
 
 void sort_users_by_distance(Users_Catalog catalog);
 

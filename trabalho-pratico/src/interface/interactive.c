@@ -232,7 +232,7 @@ void display_query_results(WINDOW *border_win, char *input, ...)
     mvprintw(LINES / 4 - 1, COLS / 4, "1 of %d", n_pages);
     mvprintw(LINES / 4 - 1, 3 * COLS / 4 - strlen("Use the arrow keys"), "Use the arrow keys");
 
-        int y_setter = 0; // this multiplies by (-output_lines) in order to have the starting y of the string placed in a way that the window and the correct chunk of the string match each other
+    int y_setter = 0; // this multiplies by (-output_lines) in order to have the starting y of the string placed in a way that the window and the correct chunk of the string match each other
     int cycle_flag = 1;
     while (cycle_flag)
     {

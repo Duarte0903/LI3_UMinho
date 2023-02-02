@@ -116,8 +116,6 @@ void print_q4(Output_Type output_struct, char **fields, va_list args)
     char *city = fields[1];
     city[strcspn(city, "\n")] = 0;
 
-    sort_rides_by_city(rides_catalog);
-
     char *output = get_q4(city, rides_catalog);
 
     if (output && !output_struct->interactive)
@@ -185,8 +183,6 @@ void print_q6(Output_Type output_struct, char **fields, va_list args)
     if (end_date < start_date) // print empty file
         return;
 
-    sort_rides_by_date(rides_catalog);
-
     char *output = get_q6(city, start_date, end_date, rides_catalog);
 
     if (output && !output_struct->interactive)
@@ -212,16 +208,14 @@ void print_q7(Output_Type output_struct, char **fields, va_list args)
     va_copy(args_copy, args);
 
     (void)va_arg(args, Users_Catalog);
-    (void)va_arg(args, Drivers_Catalog);
-    Rides_Catalog rides_catalog = va_arg(args, Rides_Catalog);
+    Drivers_Catalog drivers_catalog = va_arg(args, Drivers_Catalog);
+    (void)va_arg(args, Rides_Catalog);
 
     int n_drivers = str_to_int(fields[1]);
     char *city = fields[2];
     city[strcspn(city, "\n")] = 0;
 
-    sort_rides_by_city_and_driver_id(rides_catalog);
-
-    char *output = get_q7(n_drivers, city, args_copy);
+    char *output = get_q7(n_drivers, city, drivers_catalog);
 
     if (output && !output_struct->interactive)
     {
@@ -254,8 +248,6 @@ void print_q8(Output_Type output_struct, char **fields, va_list args)
     GPtrArray *catalog_pointers_extra_data = g_ptr_array_new();
     g_ptr_array_add(catalog_pointers_extra_data, users_catalog);
     g_ptr_array_add(catalog_pointers_extra_data, drivers_catalog);
-
-    sort_rides_by_account_age(rides_catalog, &catalog_pointers_extra_data);
 
     char *output = get_q8(gender, minimum_age, rides_catalog, &catalog_pointers_extra_data);
 

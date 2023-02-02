@@ -13,7 +13,7 @@
 as this ensures that you have access to the complete declarations of these functions and any related constants.
 */
 
-// This is the dark version of each color (dark_yellow, dark_red, dark_green) and UTF-8 code for light cross and check marks 
+// This is the dark version of each color (dark_yellow, dark_red, dark_green) and UTF-8 code for light cross and check marks
 #define YELLOW "\033[0;33m"
 #define RED "\033[0;31m"
 #define GREEN "\033[0;32m"
@@ -23,7 +23,7 @@ as this ensures that you have access to the complete declarations of these funct
 
 #define CHUNK_SIZE 512 * 1024 // Read the files in chunks of at most 512KB at a time
 
-int compare_files(char *path1, char *path2) {
+int compare_files(const char *path1, const char *path2) {
     // Get the size of each file
     struct stat st1;
     struct stat st2;
@@ -82,10 +82,77 @@ int compare_files(char *path1, char *path2) {
     return result;
 }
 
+void find_different_lines(const char *path1, const char *path2) {
+    // Open the files for reading
+    FILE *file1 = fopen(path1, "r");
+    FILE *file2 = fopen(path2, "r");
+
+    // Check if the files were successfully opened
+    if (file1 == NULL || file2 == NULL) {
+        printf("Error opening files: %s, %s\n", path1, path2);
+        return;
+    }
+
+    // Allocate a buffer for reading the lines
+    char *line1 = NULL;
+    char *line2 = NULL;
+    size_t len1 = 0;
+    size_t len2 = 0;
+    ssize_t nread1;
+    ssize_t nread2;
+
+    // Read the files line by line and compare the contents
+    int line_number = 1;
+    while ((nread1 = getline(&line1, &len1, file1)) != -1 && (nread2 = getline(&line2, &len2, file2)) != -1) {
+        // Compare the lines
+        if (nread1 != nread2 || strcmp(line1, line2) != 0) {
+            printf("    %sLine %d:\n", YELLOW, line_number);
+            printf("    %s-> %s", GREEN, line1);
+            printf("    %s-> %s\n", RED, line2);
+        }
+        line_number++;
+    }
+
+    // Free the buffers
+    free(line1);
+    free(line2);
+    // Close the files
+    fclose(file1);
+    fclose(file2);
+}
+
+int get_query_number(const char *file_path, int line_number) {
+    FILE *file = fopen(file_path, "r");
+
+    if (file == NULL) {
+        printf("Error opening file: %s\n", file_path);
+        abort();
+    }
+
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t nread;
+    int current_line = 1;
+    int result = 0;
+
+    while ((nread = getline(&line, &len, file)) != -1) {
+        if (current_line == line_number) {
+            result = line[0] - '0';
+            break;
+        }
+        current_line++;
+    }
+
+    free(line);
+    fclose(file);
+
+    return result;
+}
+
 int main(int argc, char **argv) {
-    if (argc != 3) {
+    if (argc != 4) {
         printf("Wrong number of arguments!\n");
-        printf("Usage: %s <folder1> <folder2>\n", argv[0]);
+        printf("Usage: %s <folder1> <folder2> <input>\n", argv[0]);
         return 1;
     }
 
@@ -99,17 +166,34 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // Keep track of the total number of tests, passed tests, and failed tests
-    int total_tests = 0, passed_tests = 0, failed_tests = 0;
-
-    // Read the entries in each directory
+    // Check if the directories have the same number of files
     struct dirent *entry1;
     struct dirent *entry2;
+
+    int file_count1 = 0, file_count2 = 0;
+
+    while ((entry1 = readdir(dir1)) != NULL) file_count1++;
+    while ((entry2 = readdir(dir2)) != NULL) file_count2++;
+
+    if (file_count1 != file_count2) {
+        printf("\n%s%s and %s have a different number of files%s\n", YELLOW, argv[1], argv[2], NO_COLOR);
+        closedir(dir1);
+        closedir(dir2);
+        return 1;
+    }
+
+    // Reset directories
+    rewinddir(dir1);
+    rewinddir(dir2);
+
+    // Keep track of the total number of tests, passed tests, and failed tests
+    int total_tests = 0, passed_tests = 0, failed_tests = 0;
 
     // Start the timer
     printf("\n%sRunning tests ...%s\n\n", YELLOW, NO_COLOR);
     clock_t start = clock();
 
+    // Read the entries in each directory
     while ((entry1 = readdir(dir1)) != NULL && (entry2 = readdir(dir2)) != NULL) {
         // Skip hidden files and directories ("." and "..")
         if (entry1->d_name[0] == '.' || entry2->d_name[0] == '.') {
@@ -127,7 +211,11 @@ int main(int argc, char **argv) {
         if (result == 0) {
             passed_tests++;
         } else {
-            printf("%s[FAILED] %s\n", RED, entry2->d_name);
+            int line_number;
+            sscanf(entry2->d_name, "command%d_output.txt", &line_number);
+            int query = get_query_number(argv[3], line_number);
+            printf("%s[FAILED] %s | Q%d\n", RED, entry2->d_name, query);
+            find_different_lines(path1, path2);
             failed_tests++;
         }
         total_tests++;

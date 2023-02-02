@@ -10,55 +10,103 @@
 #include "../includes/ride.h"
 #include "../includes/utils.h"
 #include "../includes/date.h"
+#include "../includes/vp_array.h"
+#include "../includes/city_hash.h"
 
 #define N_USER_STATS 4
-#define N_DRIVER_STATS 3
+#define N_DRIVER_STATS 4
 
-typedef struct rides_catalog {
+typedef struct rides_catalog
+{
     GPtrArray *rides_array;
-    enum sort_mode {
+    GPtrArray *rides_male_gender_array;
+    GPtrArray *rides_female_gender_array;
+    GPtrArray *rides_city_arrays;
+    enum sort_status
+    {
         UNSORTED,
         DATE,
-        CITY,
-        CITY_DRIVER_ID,
-        ACCOUNT_AGE
-    } sort_mode;
+        MALE,
+        FEMALE,
+        DATE_AND_MALE,
+        DATE_AND_FEMALE,
+        GENDER,
+        DATE_AND_GENDER
+    } sort_status;
 } *Rides_Catalog;
 
-typedef struct driver_average_by_city {
-    char *driver_id;
-    double average_rating;
-} *Driver_in_City;
+typedef struct rides_in_city
+{
+    GPtrArray *rides_by_date;
+    double average_price;
+    bool is_sorted;
+} *Rides_In_City;
 
-Driver_in_City new_driver_in_city() {
-    Driver_in_City driver = malloc(sizeof(struct driver_average_by_city));
-    driver->driver_id = NULL;
-    return driver;
-}
-
-void glib_wrapper_free_ride(gpointer ride) {
+void glib_wrapper_free_ride(gpointer ride)
+{
     free_ride(ride);
 }
 
-void free_driver_by_city(Driver_in_City driver) {
-    free(driver->driver_id);
-    free(driver);
-}
+void glib_wrapper_free_rides_in_city(gpointer city);
 
-void glib_wrapper_free_driver_in_city(gpointer driver) {
-    free_driver_by_city(driver);
-}
+void init_rides_in_city(GPtrArray *arr, int capacity);
 
-Rides_Catalog create_rides_catalog() {
+Rides_Catalog create_rides_catalog()
+{
     Rides_Catalog catalog = malloc(sizeof(struct rides_catalog));
 
-    catalog->rides_array = g_ptr_array_new_with_free_func(glib_wrapper_free_ride);
-    catalog->sort_mode = UNSORTED;
+    catalog->rides_array = g_ptr_array_new_full(1000000, glib_wrapper_free_ride);
+    catalog->rides_male_gender_array = g_ptr_array_new();
+    catalog->rides_female_gender_array = g_ptr_array_new();
+    catalog->rides_city_arrays = g_ptr_array_new_full(7, glib_wrapper_free_rides_in_city);
+    init_rides_in_city(catalog->rides_city_arrays, 7);
+    catalog->sort_status = UNSORTED;
 
     return catalog;
 }
 
-int is_valid_ride(char **fields) {
+Rides_In_City create_rides_in_city()
+{
+    Rides_In_City city = malloc(sizeof(struct rides_in_city));
+
+    city->rides_by_date = g_ptr_array_new();
+    city->average_price = 0.0;
+    city->is_sorted = false;
+
+    return city;
+}
+
+void init_rides_in_city(GPtrArray *arr, int capacity)
+{
+    for (int i = 0; i < capacity; i++)
+    {
+        Rides_In_City city = create_rides_in_city();
+        g_ptr_array_add(arr, city);
+    }
+}
+
+void free_rides_catalog(Rides_Catalog catalog)
+{
+    g_ptr_array_free(catalog->rides_array, TRUE);
+    g_ptr_array_free(catalog->rides_male_gender_array, TRUE);
+    g_ptr_array_free(catalog->rides_female_gender_array, TRUE);
+    g_ptr_array_free(catalog->rides_city_arrays, TRUE);
+    free(catalog);
+}
+
+void free_rides_in_city(Rides_In_City city)
+{
+    g_ptr_array_free(city->rides_by_date, TRUE);
+    free(city);
+}
+
+void glib_wrapper_free_rides_in_city(gpointer city)
+{
+    free_rides_in_city(city);
+}
+
+int is_valid_ride(char **fields)
+{
     if (IS_EMPTY(fields[0]) || IS_EMPTY(fields[2]) || IS_EMPTY(fields[3]) || IS_EMPTY(fields[4]))
         return 0;
 
@@ -82,12 +130,13 @@ int is_valid_ride(char **fields) {
     return 1;
 }
 
-double calculate_ride_cost(char *car_class, unsigned short distance) {
+double calculate_ride_cost(char *car_class, unsigned short distance)
+{
     double result = 0.0;
 
-    if (!strcasecmp(car_class, "basic"))
+    if (!strcmp(car_class, "basic"))
         result += 3.25 + 0.62 * distance;
-    else if (!strcasecmp(car_class, "green"))
+    else if (!strcmp(car_class, "green"))
         result += 4 + 0.79 * distance;
     else
         result += 5.20 + 0.94 * distance;
@@ -95,56 +144,28 @@ double calculate_ride_cost(char *car_class, unsigned short distance) {
     return result;
 }
 
-void **get_user_stats_from_ride(unsigned short ride_user_score, double ride_cost_w_tip, unsigned short ride_distance, unsigned short ride_date) {
-    void **stats = malloc(N_USER_STATS * sizeof(void *));
-
-    if (!stats) {
-        perror("Error: Failed to allocate memory!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    unsigned short *score = malloc(sizeof(unsigned short)); // otimizar ? (não sei se dá)
-    double *cost = malloc(sizeof(double));
-    unsigned short *distance = malloc(sizeof(unsigned short));
-    unsigned short *date = malloc(sizeof(unsigned short));
-
-    *score = ride_user_score;
-    *cost = ride_cost_w_tip;
-    *distance = ride_distance;
-    *date = ride_date;
-
-    stats[0] = score;
-    stats[1] = cost;
-    stats[2] = distance;
-    stats[3] = date;
-
-    return stats;
+VPA *create_user_stats_array(unsigned short ride_user_score, double ride_cost_w_tip, unsigned short ride_distance, unsigned short ride_date)
+{
+    VPA *arr = vpa_create(N_USER_STATS);
+    vpa_add(arr, &ride_user_score, sizeof(unsigned short));
+    vpa_add(arr, &ride_cost_w_tip, sizeof(double));
+    vpa_add(arr, &ride_distance, sizeof(unsigned short));
+    vpa_add(arr, &ride_date, sizeof(unsigned short));
+    return arr;
 }
 
-void **get_driver_stats_from_ride(unsigned short ride_driver_score, double ride_cost_w_tip, unsigned short ride_date) {
-    void **stats = malloc(N_DRIVER_STATS * sizeof(void *));
-
-    if (!stats) {
-        perror("Error: Failed to allocate memory!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    unsigned short *score = malloc(sizeof(unsigned short)); // otimizar ? (não sei se dá)
-    double *cost = malloc(sizeof(double));
-    unsigned short *date = malloc(sizeof(unsigned short));
-
-    *score = ride_driver_score;
-    *cost = ride_cost_w_tip;
-    *date = ride_date;
-
-    stats[0] = score;
-    stats[1] = cost;
-    stats[2] = date;
-
-    return stats;
+VPA *create_driver_stats_array(unsigned short ride_driver_score, int city_index, double ride_cost_w_tip, unsigned short ride_date)
+{
+    VPA *arr = vpa_create(N_DRIVER_STATS);
+    vpa_add(arr, &ride_driver_score, sizeof(unsigned short));
+    vpa_add(arr, &city_index, sizeof(int));
+    vpa_add(arr, &ride_cost_w_tip, sizeof(double));
+    vpa_add(arr, &ride_date, sizeof(unsigned short));
+    return arr;
 }
 
-void insert_ride_in_catalog(char **fields, va_list args) {
+void insert_ride_in_catalog(char **fields, va_list args)
+{
     Rides_Catalog rides_catalog = va_arg(args, Rides_Catalog);
     Users_Catalog users_catalog = va_arg(args, Users_Catalog);
     Drivers_Catalog drivers_catalog = va_arg(args, Drivers_Catalog);
@@ -154,11 +175,31 @@ void insert_ride_in_catalog(char **fields, va_list args) {
 
     char *username = get_ride_user(ride);
     char *driver_id = get_ride_driver_id(ride);
+
+    char *user_gender = get_user_gender_username(username, users_catalog);
+    char *driver_gender = get_driver_gender_id(driver_id, drivers_catalog);
+    if (user_gender[0] == driver_gender[0])
+    {
+        if (user_gender[0] == 'M')
+            g_ptr_array_add(rides_catalog->rides_male_gender_array, ride);
+        else
+            g_ptr_array_add(rides_catalog->rides_female_gender_array, ride);
+    }
+    free(user_gender);
+    free(driver_gender);
+
     unsigned short ride_distance = get_ride_distance(ride);
     char *ride_car_class = get_ride_car_class(driver_id, drivers_catalog);
     double ride_cost = calculate_ride_cost(ride_car_class, ride_distance);
     set_ride_cost(ride, ride_cost);
     free(ride_car_class);
+
+    char *city = get_ride_city(ride);
+    int city_index = get_city_index(city);
+    free(city);
+    Rides_In_City rides_in_city = g_ptr_array_index(rides_catalog->rides_city_arrays, city_index);
+    g_ptr_array_add(rides_in_city->rides_by_date, ride);
+    rides_in_city->average_price = (rides_in_city->average_price * ((int)rides_in_city->rides_by_date->len - 1) + ride_cost) / (int)rides_in_city->rides_by_date->len;
 
     double ride_tip = get_ride_tip(ride);
     double ride_cost_w_tip = ride_cost + ride_tip;
@@ -166,24 +207,21 @@ void insert_ride_in_catalog(char **fields, va_list args) {
     unsigned short ride_driver_score = get_ride_driver_score(ride);
     unsigned short ride_date = get_ride_date(ride);
 
-    void **user_stats_fields = get_user_stats_from_ride(ride_user_score, ride_cost_w_tip, ride_distance, ride_date);
+    VPA *user_stats_fields = create_user_stats_array(ride_user_score, ride_cost_w_tip, ride_distance, ride_date);
     update_user_stats(username, user_stats_fields, users_catalog);
+    vpa_free(user_stats_fields);
     free(username);
-    for (int i = 0; i < N_USER_STATS; i++)
-        free(user_stats_fields[i]);
-    free(user_stats_fields);
 
-    void **driver_stats_fields = get_driver_stats_from_ride(ride_driver_score, ride_cost_w_tip, ride_date);
+    VPA *driver_stats_fields = create_driver_stats_array(ride_driver_score, city_index, ride_cost_w_tip, ride_date);
     update_driver_stats(driver_id, driver_stats_fields, drivers_catalog);
+    vpa_free(driver_stats_fields);
     free(driver_id);
-    for (int i = 0; i < N_DRIVER_STATS; i++)
-        free(driver_stats_fields[i]);
-    free(driver_stats_fields);
 }
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> COMPARE FUNCTIONS TO SORT <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< //
 
-static gint compare_rides_by_date(gconstpointer r1, gconstpointer r2) {
+static gint compare_rides_by_date(gconstpointer r1, gconstpointer r2)
+{
     Ride ride1 = *(Ride *)r1;
     Ride ride2 = *(Ride *)r2;
 
@@ -193,7 +231,8 @@ static gint compare_rides_by_date(gconstpointer r1, gconstpointer r2) {
     return (date1 < date2) ? -1 : (date1 > date2);
 }
 
-static gint compare_ride_by_city(gconstpointer r1, gconstpointer r2) {
+static gint compare_ride_by_city(gconstpointer r1, gconstpointer r2)
+{
     Ride ride1 = *(Ride *)r1;
     Ride ride2 = *(Ride *)r2;
 
@@ -208,48 +247,8 @@ static gint compare_ride_by_city(gconstpointer r1, gconstpointer r2) {
     return result;
 }
 
-static gint compare_ride_by_city_and_driver_id(gconstpointer r1, gconstpointer r2) {
-    Ride ride1 = *(Ride *)r1;
-    Ride ride2 = *(Ride *)r2;
-
-    char *city1 = get_ride_city(ride1);
-    char *city2 = get_ride_city(ride2);
-
-    int result = strcmp(city1, city2);
-
-    if (result == 0) {
-        char *id_1 = get_ride_driver_id(ride1);
-        char *id_2 = get_ride_driver_id(ride2);
-        result = strcmp(id_1, id_2);
-        free(id_1);
-        free(id_2);
-    }
-
-    free(city1);
-    free(city2);
-
-    return result;
-}
-
-static gint compare_driver_average_in_city(gconstpointer d1, gconstpointer d2) {
-    Driver_in_City driver_1 = *(Driver_in_City *)d1;
-    Driver_in_City driver_2 = *(Driver_in_City *)d2;
-
-    double diff = driver_1->average_rating - driver_2->average_rating;
-    int result;
-
-    // Descending order
-    if (diff < 0)
-        result = 1;
-    else if (diff > 0)
-        result = -1;
-    else
-        result = -strcmp(driver_1->driver_id, driver_2->driver_id);
-
-    return result;
-}
-
-static gint compare_rides_by_account_age(gconstpointer r1, gconstpointer r2, gpointer array_with_extra_data) {
+static gint compare_rides_by_account_age(gconstpointer r1, gconstpointer r2, gpointer array_with_extra_data)
+{
     int result = 0;
     Ride ride1 = *(Ride *)r1;
     Ride ride2 = *(Ride *)r2;
@@ -274,7 +273,8 @@ static gint compare_rides_by_account_age(gconstpointer r1, gconstpointer r2, gpo
         result = -1;
     else if (r1_driver_acc_age < r2_driver_acc_age || (r1_driver_acc_age == r2_driver_acc_age && r1_user_acc_age < r2_user_acc_age))
         result = 1;
-    else {
+    else
+    {
         char *r1_id = get_ride_id(ride1);
         char *r2_id = get_ride_id(ride2);
         result = strcmp(r1_id, r2_id);
@@ -290,7 +290,8 @@ static gint compare_rides_by_account_age(gconstpointer r1, gconstpointer r2, gpo
     return result;
 }
 
-static gint compare_rides_by_distance_w_tip(gconstpointer r1, gconstpointer r2) {
+static gint compare_rides_by_distance_w_tip(gconstpointer r1, gconstpointer r2)
+{
     Ride ride1 = *(Ride *)r1;
     Ride ride2 = *(Ride *)r2;
 
@@ -315,7 +316,8 @@ static gint compare_rides_by_distance_w_tip(gconstpointer r1, gconstpointer r2) 
         result = 1;
     else if (distance1 > distance2 || (distance1 == distance2 && date1 > date2))
         result = -1;
-    else {
+    else
+    {
         char *ride_id1 = get_ride_id(ride1);
         char *ride_id2 = get_ride_id(ride2);
         result = -strcmp(ride_id1, ride_id2);
@@ -328,7 +330,8 @@ static gint compare_rides_by_distance_w_tip(gconstpointer r1, gconstpointer r2) 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> COMPARE FUNCTIONS TO BS <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< //
 
-static gint compare_ride_date_bsearch(gconstpointer r, gconstpointer d) {
+static gint compare_ride_date_bsearch(gconstpointer r, gconstpointer d)
+{
     Ride ride = *(Ride *)r;
     unsigned short date = *(unsigned short *)d;
 
@@ -337,20 +340,8 @@ static gint compare_ride_date_bsearch(gconstpointer r, gconstpointer d) {
     return (ride_date < date) ? -1 : (ride_date > date);
 }
 
-static gint compare_ride_city_bsearch(gconstpointer r1, gconstpointer c) {
-    Ride ride = *(Ride *)r1;
-    char *city = *(char **)c;
-
-    char *ride_city = get_ride_city(ride);
-
-    int result = strcmp(ride_city, city);
-
-    free(ride_city);
-
-    return result;
-}
-
-static gint compare_ride_account_age_bsearch(gconstpointer r1, gconstpointer minimum_age, gpointer catalog_pointers) {
+static gint compare_ride_account_age_bsearch(gconstpointer r1, gconstpointer minimum_age, gpointer catalog_pointers)
+{
     Ride ride1 = *(Ride *)r1;
     unsigned short *min_age_ptr = (unsigned short *)minimum_age;
     GPtrArray *array = *(GPtrArray **)catalog_pointers;
@@ -365,7 +356,8 @@ static gint compare_ride_account_age_bsearch(gconstpointer r1, gconstpointer min
     return (driver_acc_age_years > *min_age_ptr) ? -1 : (driver_acc_age_years < *min_age_ptr);
 }
 
-static gint compare_ride_tip_w_zero_bsearch(gconstpointer r1, gconstpointer z) {
+static gint compare_ride_tip_w_zero_bsearch(gconstpointer r1, gconstpointer z)
+{
     Ride ride = *(Ride *)r1;
     double zero = *(double *)z;
 
@@ -376,58 +368,41 @@ static gint compare_ride_tip_w_zero_bsearch(gconstpointer r1, gconstpointer z) {
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SORT FUNCTIONS <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< //
 
-void sort_rides_by_date(Rides_Catalog catalog) {
-    if (catalog->sort_mode != DATE) {
-        g_ptr_array_sort(catalog->rides_array, compare_rides_by_date);
-        catalog->sort_mode = DATE;
-    }
+void sort_rides_by_date(Rides_Catalog catalog)
+{
+    // if (catalog->sort_mode != DATE) {
+    g_ptr_array_sort(catalog->rides_array, compare_rides_by_date);
+    //    catalog->sort_mode = DATE;
+    //}
 }
 
-void sort_rides_by_city(Rides_Catalog catalog) {
-    if (catalog->sort_mode != CITY) {
-        g_ptr_array_sort(catalog->rides_array, compare_ride_by_city);
-        catalog->sort_mode = CITY;
-    }
-}
-
-void sort_rides_by_city_and_driver_id(Rides_Catalog catalog) {
-    if (catalog->sort_mode != CITY_DRIVER_ID) {
-        g_ptr_array_sort(catalog->rides_array, compare_ride_by_city_and_driver_id);
-        catalog->sort_mode = CITY_DRIVER_ID;
-    }
-}
-
-void sort_rides_by_account_age(Rides_Catalog catalog, gpointer array_with_catalog_pointers) {
-    if (catalog->sort_mode != ACCOUNT_AGE) {
-        g_ptr_array_sort_with_data(catalog->rides_array, compare_rides_by_account_age, array_with_catalog_pointers);
-        catalog->sort_mode = ACCOUNT_AGE;
-    }
+void sort_rides_by_city(Rides_Catalog catalog)
+{
+    // if (catalog->sort_mode != CITY) {
+    g_ptr_array_sort(catalog->rides_array, compare_ride_by_city);
+    //    catalog->sort_mode = CITY;
+    //}
 }
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> QUERY OUTPUT FUNCTIONS <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< //
 
-char *get_q4(char *city, Rides_Catalog catalog) {
-    int first_elem = first_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_city_bsearch, &city, 0);
+char *get_q4(char *city, Rides_Catalog catalog)
+{
 
-    if (first_elem == -1)
+    int city_index = get_city_index(city);
+    if (city_index == -1)
         return NULL;
 
-    int last_elem = last_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_city_bsearch, &city, 0);
-    int n_rides_in_city = last_elem - first_elem + 1;
-    double average_price_in_city = 0.0;
-
-    for (int i = first_elem; i <= last_elem; i++) {
-        average_price_in_city += get_ride_cost(g_ptr_array_index(catalog->rides_array, i));
-    }
-    average_price_in_city /= n_rides_in_city;
+    Rides_In_City rides_city = g_ptr_array_index(catalog->rides_city_arrays, city_index);
 
     char *result = malloc(12 * sizeof(char));
-    sprintf(result, "%.3f\n", average_price_in_city);
+    sprintf(result, "%.3f\n", rides_city->average_price);
 
     return result;
 }
 
-char *get_q5(unsigned short start_date, unsigned short end_date, Rides_Catalog catalog) {
+char *get_q5(unsigned short start_date, unsigned short end_date, Rides_Catalog catalog)
+{
     int first_elem = first_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_bsearch, &start_date, 1);
     int last_elem = last_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_bsearch, &end_date, 1);
 
@@ -437,7 +412,8 @@ char *get_q5(unsigned short start_date, unsigned short end_date, Rides_Catalog c
     int n_rides = last_elem - first_elem + 1;
     double average_price = 0.0;
 
-    for (int i = first_elem; i <= last_elem; i++) {
+    for (int i = first_elem; i <= last_elem; i++)
+    {
         average_price += get_ride_cost(g_ptr_array_index(catalog->rides_array, i));
     }
     average_price /= n_rides;
@@ -448,118 +424,98 @@ char *get_q5(unsigned short start_date, unsigned short end_date, Rides_Catalog c
     return result;
 }
 
-char *get_q6(char *city, unsigned short start_date, unsigned short end_date, Rides_Catalog catalog) {
-    int first_elem = first_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_bsearch, &start_date, 1);
-    int last_elem = last_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_bsearch, &end_date, 1);
-
-    if (first_elem == -1 || last_elem == -1) // the dates do not exist in the array + out of bounds
+char *get_q6(char *city, unsigned short start_date, unsigned short end_date, Rides_Catalog catalog)
+{
+    int city_index = get_city_index(city);
+    if (city_index == -1)
         return NULL;
 
-    int n_rides_in_city = 0;
-    double average_distance_in_city = 0.0;
-
-    for (int i = first_elem; i <= last_elem; i++) {
-        Ride ride = g_ptr_array_index(catalog->rides_array, i);
-        char *ride_city = get_ride_city(ride);
-
-        if (strcmp(ride_city, city) == 0) {
-            n_rides_in_city++;
-            average_distance_in_city += get_ride_distance(ride);
-        }
-
-        free(ride_city);
+    Rides_In_City rides_city = g_ptr_array_index(catalog->rides_city_arrays, city_index);
+    if (!rides_city->is_sorted)
+    {
+        g_ptr_array_sort(rides_city->rides_by_date, compare_rides_by_date);
+        rides_city->is_sorted = true;
     }
-
-    if (n_rides_in_city == 0)
-        return NULL;
-
-    average_distance_in_city /= n_rides_in_city;
-
-    char *result = malloc(12 * sizeof(char));
-    sprintf(result, "%.3f\n", average_distance_in_city);
-
-    return result;
-}
-
-char *get_q7(unsigned short n_drivers, char *city, va_list args) {
-    (void)va_arg(args, Users_Catalog);
-    Drivers_Catalog drivers_catalog = va_arg(args, Drivers_Catalog);
-    Rides_Catalog rides_catalog = va_arg(args, Rides_Catalog);
-
-    int first_elem = first_occurrence_ptr_array_bsearch(rides_catalog->rides_array, compare_ride_city_bsearch, &city, 0);
-    int last_elem = last_occurrence_ptr_array_bsearch(rides_catalog->rides_array, compare_ride_city_bsearch, &city, 0);
+    int first_elem = first_occurrence_ptr_array_bsearch(rides_city->rides_by_date, compare_ride_date_bsearch, &start_date, 1);
+    int last_elem = last_occurrence_ptr_array_bsearch(rides_city->rides_by_date, compare_ride_date_bsearch, &end_date, 1);
 
     if (first_elem == -1 || last_elem == -1)
         return NULL;
 
-    GPtrArray *results_array = g_ptr_array_new_with_free_func(glib_wrapper_free_driver_in_city);
-
-    Ride ride = g_ptr_array_index(rides_catalog->rides_array, first_elem);
-    char *driver_id = get_ride_driver_id(ride);
-    unsigned short rating = get_ride_driver_score(ride);
-
-    double average_rating = rating;
-    int n_rides = 1;
-    char *prev_id = strdup(driver_id);
-
-    free(driver_id);
-
-    for (int i = first_elem + 1; i <= last_elem; i++) {
-        ride = g_ptr_array_index(rides_catalog->rides_array, i);
-        driver_id = get_ride_driver_id(ride);
-        rating = get_ride_driver_score(ride);
-
-        if (strcmp(driver_id, prev_id) == 0) {
-            average_rating += rating;
-            n_rides++;
-        } else {
-            bool account_status = get_driver_account_status_id(prev_id, drivers_catalog);
-            if (account_status) {
-                Driver_in_City driver = new_driver_in_city();
-                driver->driver_id = strdup(prev_id);
-                driver->average_rating = average_rating / n_rides;
-                g_ptr_array_add(results_array, driver);
-            }
-
-            free(prev_id);
-            average_rating = rating;
-            n_rides = 1;
-            prev_id = strdup(driver_id);
-        }
-
-        free(driver_id);
+    int n_rides = last_elem - first_elem + 1;
+    double average_distance = 0.0;
+    for (int i = first_elem; i <= last_elem; i++)
+    {
+        Ride ride = g_ptr_array_index(rides_city->rides_by_date, i);
+        average_distance += get_ride_distance(ride);
     }
+    average_distance /= n_rides;
 
-    free(prev_id);
-
-    g_ptr_array_sort(results_array, compare_driver_average_in_city);
-
-    if (n_drivers > (int)results_array->len)
-        n_drivers = results_array->len;
-
-    char *result = NULL;
-    size_t result_size = 0;
-    FILE *stream = open_memstream(&result, &result_size);
-
-    for (int i = 0; i < n_drivers; i++) {
-        Driver_in_City driver = g_ptr_array_index(results_array, i);
-        char *name = get_driver_name_id(driver->driver_id, drivers_catalog);
-        fprintf(stream, "%s;%s;%.3f\n", driver->driver_id, name, driver->average_rating);
-        free(name);
-    }
-
-    fclose(stream);
-    g_ptr_array_free(results_array, TRUE);
+    char *result = malloc(12 * sizeof(char));
+    sprintf(result, "%.3f\n", average_distance);
 
     return result;
 }
 
-char *get_q8(char *gender, int minimum_age, Rides_Catalog rides_catalog, gpointer catalog_pointer_extra_data) {
+
+char *get_q8(char *gender, int minimum_age, Rides_Catalog rides_catalog, gpointer catalog_pointer_extra_data)
+{
     GPtrArray *array_extra_data = *(GPtrArray **)catalog_pointer_extra_data;
     Users_Catalog users_catalog = g_ptr_array_index(array_extra_data, 0);
     Drivers_Catalog drivers_catalog = g_ptr_array_index(array_extra_data, 1);
 
-    int last_elem_index = last_occurrence_ptr_array_bsearch_with_data(rides_catalog->rides_array, compare_ride_account_age_bsearch, &minimum_age, 0, catalog_pointer_extra_data);
+    GPtrArray *results_array = NULL;
+    if (gender[0] == 'M')
+    {
+        if (rides_catalog->sort_status != MALE && rides_catalog->sort_status != DATE_AND_MALE && rides_catalog->sort_status != GENDER && rides_catalog->sort_status != DATE_AND_GENDER)
+        {
+            g_ptr_array_sort_with_data(rides_catalog->rides_male_gender_array, compare_rides_by_account_age, catalog_pointer_extra_data);
+            if (rides_catalog->sort_status == FEMALE)
+            {
+                rides_catalog->sort_status = GENDER;
+            }
+            else if (rides_catalog->sort_status == DATE_AND_FEMALE)
+            {
+                rides_catalog->sort_status = DATE_AND_GENDER;
+            }
+            else if (rides_catalog->sort_status == DATE)
+            {
+                rides_catalog->sort_status = DATE_AND_MALE;
+            }
+            else
+            {
+                rides_catalog->sort_status = MALE;
+            }
+        }
+        results_array = rides_catalog->rides_male_gender_array;
+    }
+    else
+    {
+
+        if (rides_catalog->sort_status != FEMALE && rides_catalog->sort_status != DATE_AND_FEMALE && rides_catalog->sort_status != GENDER && rides_catalog->sort_status != DATE_AND_GENDER)
+        {
+            g_ptr_array_sort_with_data(rides_catalog->rides_female_gender_array, compare_rides_by_account_age, catalog_pointer_extra_data);
+            if (rides_catalog->sort_status == MALE)
+            {
+                rides_catalog->sort_status = GENDER;
+            }
+            else if (rides_catalog->sort_status == DATE_AND_MALE)
+            {
+                rides_catalog->sort_status = DATE_AND_GENDER;
+            }
+            else if (rides_catalog->sort_status == DATE)
+            {
+                rides_catalog->sort_status = DATE_AND_FEMALE;
+            }
+            else
+            {
+                rides_catalog->sort_status = FEMALE;
+            }
+        }
+        results_array = rides_catalog->rides_female_gender_array;
+    }
+
+    int last_elem_index = last_occurrence_ptr_array_bsearch_with_data(results_array, compare_ride_account_age_bsearch, &minimum_age, 0, catalog_pointer_extra_data);
     if (last_elem_index == -1)
         return NULL;
 
@@ -567,34 +523,31 @@ char *get_q8(char *gender, int minimum_age, Rides_Catalog rides_catalog, gpointe
     size_t result_size = 0;
     FILE *stream = open_memstream(&result, &result_size);
 
-    for (int i = 0; i <= last_elem_index; i++) {
-        Ride ride = g_ptr_array_index(rides_catalog->rides_array, i);
+    for (int i = 0; i <= last_elem_index; i++)
+    {
+        Ride ride = g_ptr_array_index(results_array, i);
         char *driver_id = get_ride_driver_id(ride);
         char *user_username = get_ride_user(ride);
-        char *driver_gender = get_driver_gender_id(driver_id, drivers_catalog);
-        char *user_gender = get_user_gender_username(user_username, users_catalog);
 
-        if (!strcmp(driver_gender, user_gender) && !strcmp(user_gender, gender)) {
-            bool driver_account_status = get_driver_account_status_id(driver_id, drivers_catalog);
-            bool user_account_status = get_user_account_status_username(user_username, users_catalog);
+        bool driver_account_status = get_driver_account_status_id(driver_id, drivers_catalog);
+        bool user_account_status = get_user_account_status_username(user_username, users_catalog);
 
-            if (user_account_status && driver_account_status) {
-                unsigned short user_account_age_years = get_age_no_ref(get_user_account_age_w_username(user_username, users_catalog));
+        if (user_account_status && driver_account_status)
+        {
+            unsigned short user_account_age_years = get_age_no_ref(get_user_account_age_w_username(user_username, users_catalog));
 
-                if (user_account_age_years >= minimum_age) {
-                    char *driver_name = get_driver_name_id(driver_id, drivers_catalog);
-                    char *user_name = get_user_name_username(user_username, users_catalog);
-                    fprintf(stream, "%s;%s;%s;%s\n", driver_id, driver_name, user_username, user_name);
-                    free(driver_name);
-                    free(user_name);
-                }
+            if (user_account_age_years >= minimum_age)
+            {
+                char *driver_name = get_driver_name_id(driver_id, drivers_catalog);
+                char *user_name = get_user_name_username(user_username, users_catalog);
+                fprintf(stream, "%s;%s;%s;%s\n", driver_id, driver_name, user_username, user_name);
+                free(driver_name);
+                free(user_name);
             }
         }
 
         free(driver_id);
         free(user_username);
-        free(driver_gender);
-        free(user_gender);
     }
 
     fclose(stream);
@@ -602,7 +555,8 @@ char *get_q8(char *gender, int minimum_age, Rides_Catalog rides_catalog, gpointe
     return result;
 }
 
-char *get_q9(unsigned short start_date, unsigned short end_date, Rides_Catalog catalog) {
+char *get_q9(unsigned short start_date, unsigned short end_date, Rides_Catalog catalog)
+{
     int first_elem = first_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_bsearch, &start_date, 1);
     int last_elem = last_occurrence_ptr_array_bsearch(catalog->rides_array, compare_ride_date_bsearch, &end_date, 1);
 
@@ -611,7 +565,8 @@ char *get_q9(unsigned short start_date, unsigned short end_date, Rides_Catalog c
 
     GPtrArray *results_array = g_ptr_array_new();
 
-    for (int i = first_elem; i <= last_elem; i++) { // reverse?
+    for (int i = first_elem; i <= last_elem; i++)
+    { // reverse?
         Ride ride = g_ptr_array_index(catalog->rides_array, i);
         g_ptr_array_add(results_array, ride);
     }
@@ -628,7 +583,8 @@ char *get_q9(unsigned short start_date, unsigned short end_date, Rides_Catalog c
     unsigned short distance;
     double tip;
 
-    for (int i = 0; i <= last_ride; i++) {
+    for (int i = 0; i <= last_ride; i++)
+    {
         Ride ride = g_ptr_array_index(results_array, i);
         ride_id = get_ride_id(ride);
         date = int_to_date(get_ride_date(ride));
@@ -646,9 +602,4 @@ char *get_q9(unsigned short start_date, unsigned short end_date, Rides_Catalog c
     g_ptr_array_free(results_array, TRUE);
 
     return result;
-}
-
-void free_rides_catalog(Rides_Catalog catalog) {
-    g_ptr_array_free(catalog->rides_array, TRUE);
-    free(catalog);
 }
