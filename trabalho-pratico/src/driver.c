@@ -107,7 +107,7 @@ bool get_driver_account_status(Driver driver) {
 
 double get_driver_average_rating(Driver driver, int index) {
     Driver_Ratings ratings = g_ptr_array_index(driver->stats.ratings, index);
-    return (double)ratings->rating / ratings->rides;
+    return (ratings->rides > 0 ? ((double)ratings->rating / ratings->rides) : 0);
 }
 
 unsigned short get_driver_total_rides(Driver driver) {

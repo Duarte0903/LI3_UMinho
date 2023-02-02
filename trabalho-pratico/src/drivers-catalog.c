@@ -10,28 +10,61 @@
 #include "../includes/utils.h"
 #include "../includes/date.h"
 #include "../includes/vp_array.h"
+#include "../includes/city_hash.h"
 
 typedef struct drivers_catalog {
-    GPtrArray *drivers_array;
     GHashTable *drivers_ht;
-    enum sort_mode {
-        UNSORTED,
-        AVERAGE_RATING
-    } sort_mode;
+    GPtrArray *drivers_average_rating_arrays;
 } *Drivers_Catalog;
+
+typedef struct drivers_in_city {
+    GPtrArray *drivers_by_city;
+    bool is_sorted;
+} *Drivers_In_City;
 
 void glib_wrapper_free_driver(gpointer driver) {
     free_driver(driver);
 }
 
+void free_drivers_in_city(Drivers_In_City city) {
+    g_ptr_array_free(city->drivers_by_city, TRUE);
+    free(city);
+}
+
+void glib_wrapper_free_drivers_in_city(gpointer city) {
+    free_drivers_in_city(city);
+}
+
+Drivers_In_City create_drivers_in_city() {
+    Drivers_In_City city = malloc(sizeof(struct drivers_in_city));
+
+    city->drivers_by_city = g_ptr_array_new();
+    city->is_sorted = false;
+
+    return city;
+}
+
+void init_drivers_in_city(GPtrArray *arr, int capacity) {
+    for (int i = 0; i < capacity; i++) {
+        Drivers_In_City city = create_drivers_in_city();
+        g_ptr_array_add(arr, city);
+    }
+}
+
 Drivers_Catalog create_drivers_catalog() {
     Drivers_Catalog catalog = malloc(sizeof(struct drivers_catalog));
 
-    catalog->drivers_array = g_ptr_array_new_full(10000, NULL);
     catalog->drivers_ht = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, glib_wrapper_free_driver);
-    catalog->sort_mode = UNSORTED;
-
+    catalog->drivers_average_rating_arrays = g_ptr_array_new_full(8, glib_wrapper_free_drivers_in_city);
+    init_drivers_in_city(catalog->drivers_average_rating_arrays, 8);
     return catalog;
+}
+
+void add_driver_to_arrays(GPtrArray *arr, Driver driver, int capacity) {
+    for (int i = 0; i < capacity; i++) {
+        Drivers_In_City drivers_in_city = g_ptr_array_index(arr, i);
+        g_ptr_array_add(drivers_in_city->drivers_by_city, driver);
+    }
 }
 
 int is_valid_driver(char **fields) {
@@ -59,9 +92,9 @@ void insert_driver_in_catalog(char **fields, va_list args) {
     Drivers_Catalog catalog = va_arg(args, Drivers_Catalog);
     Driver driver = create_driver(fields);
     char *key = get_driver_id(driver);
+    add_driver_to_arrays(catalog->drivers_average_rating_arrays, driver, 8);
 
     g_hash_table_insert(catalog->drivers_ht, key, driver);
-    g_ptr_array_add(catalog->drivers_array, driver);
 }
 
 void update_driver_stats(char *driver_id, VPA *stats, Drivers_Catalog catalog) { // Improve function after input validation
@@ -135,10 +168,52 @@ static gint compare_drivers_by_average_rating(gconstpointer d1, gconstpointer d2
     return result;
 }
 
-void sort_drivers_by_average_rating(Drivers_Catalog catalog) {
-    if (catalog->sort_mode != AVERAGE_RATING) {
-        g_ptr_array_sort(catalog->drivers_array, compare_drivers_by_average_rating);
-        catalog->sort_mode = AVERAGE_RATING;
+static gint compare_drivers_by_average_rating_in_city(gconstpointer d1, gconstpointer d2, gpointer city_index_ptr) {
+    Driver driver1 = *(Driver *)d1;
+    Driver driver2 = *(Driver *)d2;
+
+    bool account_status1 = get_driver_account_status(driver1);
+    bool account_status2 = get_driver_account_status(driver2);
+
+    if (account_status1 && !account_status2)
+        return -1;
+
+    if (!account_status1 && account_status2)
+        return 1;
+
+    if (!account_status1 && !account_status2)
+        return 0;
+
+    int index = GPOINTER_TO_INT(city_index_ptr);
+
+    char *driver_id1 = get_driver_id(driver1);
+    char *driver_id2 = get_driver_id(driver2);
+
+    double driver_average_rating1 = get_driver_average_rating(driver1, index);
+    double driver_average_rating2 = get_driver_average_rating(driver2, index);
+
+    int nearly_equal = nearly_equal_fp_numbers(driver_average_rating1, driver_average_rating2, 0.00001f);
+    int result;
+
+    if (!nearly_equal && driver_average_rating1 < driver_average_rating2)
+        result = 1;
+    else if (!nearly_equal && driver_average_rating1 > driver_average_rating2)
+        result = -1;
+    else
+        result = -strcmp(driver_id1, driver_id2);
+
+    free(driver_id1);
+    free(driver_id2);
+
+    return result;
+}
+
+void sort_drivers_by_average_rating(Drivers_Catalog catalog) // empty string if is total average rating
+{
+    Drivers_In_City drivers_in_city = g_ptr_array_index(catalog->drivers_average_rating_arrays, 7);
+    if (!drivers_in_city->is_sorted) {
+        g_ptr_array_sort(drivers_in_city->drivers_by_city, compare_drivers_by_average_rating);
+        drivers_in_city->is_sorted = true;
     }
 }
 
@@ -166,8 +241,11 @@ char *get_driver_q1(char *id, Drivers_Catalog catalog) { // change function and 
 }
 
 char *get_q2(int n_drivers, Drivers_Catalog catalog) {
-    if (n_drivers > (int)catalog->drivers_array->len)
-        n_drivers = catalog->drivers_array->len;
+
+    Drivers_In_City drivers_in_city = g_ptr_array_index(catalog->drivers_average_rating_arrays, 7); // 7 is total average rating
+
+    if (n_drivers > (int)drivers_in_city->drivers_by_city->len)
+        n_drivers = drivers_in_city->drivers_by_city->len;
 
     char *result = NULL;
     size_t result_size = 0;
@@ -176,7 +254,7 @@ char *get_q2(int n_drivers, Drivers_Catalog catalog) {
     double average_rating;
 
     for (int i = 0; i < n_drivers; i++) {
-        Driver driver = g_ptr_array_index(catalog->drivers_array, i);
+        Driver driver = g_ptr_array_index(drivers_in_city->drivers_by_city, i);
         driver_id = get_driver_id(driver);
         name = get_driver_name(driver);
         average_rating = get_driver_average_rating(driver, 7);
@@ -190,8 +268,40 @@ char *get_q2(int n_drivers, Drivers_Catalog catalog) {
     return result;
 }
 
+char *get_q7(int n_drivers, char *city, Drivers_Catalog catalog) {
+    int city_index = get_city_index(city);
+    if (city_index == -1)
+        return NULL;
+
+    Drivers_In_City drivers_in_city = g_ptr_array_index(catalog->drivers_average_rating_arrays, city_index);
+    if (!drivers_in_city->is_sorted) {
+        g_ptr_array_sort_with_data(drivers_in_city->drivers_by_city, compare_drivers_by_average_rating_in_city, GINT_TO_POINTER(city_index));
+        drivers_in_city->is_sorted = true;
+    }
+
+    if (n_drivers > (int)drivers_in_city->drivers_by_city->len)
+        n_drivers = drivers_in_city->drivers_by_city->len;
+
+    char *result = NULL;
+    size_t result_size = 0;
+    FILE *stream = open_memstream(&result, &result_size);
+
+    for (int i = 0; i < n_drivers; i++) {
+        Driver driver = g_ptr_array_index(drivers_in_city->drivers_by_city, i);
+        char *id = get_driver_id(driver);
+        char *name = get_driver_name(driver);
+        double average_rating = get_driver_average_rating(driver, city_index);
+        fprintf(stream, "%s;%s;%.3f\n", id, name, average_rating);
+        free(id);
+        free(name);
+    }
+
+    fclose(stream);
+    return result;
+}
+
 void free_drivers_catalog(Drivers_Catalog catalog) {
-    g_ptr_array_free(catalog->drivers_array, TRUE);
     g_hash_table_destroy(catalog->drivers_ht);
+    g_ptr_array_free(catalog->drivers_average_rating_arrays, TRUE);
     free(catalog);
 }
