@@ -395,8 +395,8 @@ char *get_q4(char *city, Rides_Catalog catalog)
 
     Rides_In_City rides_city = g_ptr_array_index(catalog->rides_city_arrays, city_index);
 
-    char *result = malloc(11 * sizeof(char));
-    sprintf(result, "%.3f", rides_city->average_price);
+    char *result = malloc(12 * sizeof(char));
+    sprintf(result, "%.3f\n", rides_city->average_price);
 
     return result;
 }
@@ -418,8 +418,8 @@ char *get_q5(unsigned short start_date, unsigned short end_date, Rides_Catalog c
     }
     average_price /= n_rides;
 
-    char *result = malloc(11 * sizeof(char)); // 10 average price, 1 \0
-    sprintf(result, "%.3f", average_price);
+    char *result = malloc(12 * sizeof(char)); // 10 average price, 1 \0
+    sprintf(result, "%.3f\n", average_price);
 
     return result;
 }
@@ -436,7 +436,6 @@ char *get_q6(char *city, unsigned short start_date, unsigned short end_date, Rid
         g_ptr_array_sort(rides_city->rides_by_date, compare_rides_by_date);
         rides_city->is_sorted = true;
     }
-
     int first_elem = first_occurrence_ptr_array_bsearch(rides_city->rides_by_date, compare_ride_date_bsearch, &start_date, 1);
     int last_elem = last_occurrence_ptr_array_bsearch(rides_city->rides_by_date, compare_ride_date_bsearch, &end_date, 1);
 
@@ -452,11 +451,12 @@ char *get_q6(char *city, unsigned short start_date, unsigned short end_date, Rid
     }
     average_distance /= n_rides;
 
-    char *result = malloc(11 * sizeof(char));
-    sprintf(result, "%.3f", average_distance);
+    char *result = malloc(12 * sizeof(char));
+    sprintf(result, "%.3f\n", average_distance);
 
     return result;
 }
+
 
 char *get_q8(char *gender, int minimum_age, Rides_Catalog rides_catalog, gpointer catalog_pointer_extra_data)
 {

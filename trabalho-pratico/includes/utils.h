@@ -5,7 +5,7 @@
 
 #define IS_EMPTY(str) (!str[0])
 
-char* get_age(unsigned short birth_day);
+char *get_age(unsigned short birth_day);
 
 unsigned short get_age_no_ref(unsigned short birth_date);
 

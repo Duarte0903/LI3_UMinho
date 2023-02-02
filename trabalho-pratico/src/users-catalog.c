@@ -144,8 +144,8 @@ char *get_user_q1(char *username, Users_Catalog catalog) { // change function an
     unsigned short total_rides = get_user_total_rides(user);
     double total_spent = get_user_total_spent_money(user);
 
-    char *user_str = malloc(strlen(name) + strlen(gender) + strlen(age) + 5 + 10 + 10 + 5 + 1); // 5 de rating, 10 de total_rides, 10 de money, 5 dos ;, 1 do \0
-    sprintf(user_str, "%s;%s;%s;%.3f;%hu;%.3f", name, gender, age, average_rating, total_rides, total_spent);
+    char *user_str = malloc(strlen(name) + strlen(gender) + strlen(age) + 5 + 10 + 10 + 5 + 2); // 5 de rating, 10 de total_rides, 10 de money, 5 dos ;, 2 do \n e \0
+    sprintf(user_str, "%s;%s;%s;%.3f;%hu;%.3f\n", name, gender, age, average_rating, total_rides, total_spent);
 
     free(name);
     free(gender);

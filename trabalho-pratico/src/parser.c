@@ -3,8 +3,28 @@
 #include <string.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <stdbool.h>
+#include "../includes/parser.h"
 #include "../includes/users-catalog.h"
 #include "../includes/queries.h"
+
+Output_Type new_output_struct(bool interactive)
+{
+    Output_Type r = malloc(sizeof(struct output_type));
+    if (interactive)
+    {
+        r->Type.str = NULL;
+        r->interactive = true;
+    }
+    else
+    {
+        r->Type.fp = NULL;
+        r->interactive = false;
+    };
+
+    return r;
+}
+
 
 void parse_line(const char *line, char **fields, char *delim) {
     int index = 0;
@@ -68,7 +88,7 @@ void parse_query(char *query_path, int max_args, ...) {
     ssize_t nread;
 
     char *output_path = malloc(40 * sizeof(char)); // 30 = path + \0, 10 = max integer value digits
-    FILE *output_file = NULL;                      // dar handle de erros para alocaçao de memoria e abertura de ficheiros
+    Output_Type output_struct = new_output_struct(false);
     int counter = 1;
 
     while ((nread = getline(&line, &len, input_file)) != -1) {
@@ -76,12 +96,12 @@ void parse_query(char *query_path, int max_args, ...) {
         parse_line(line, fields, " ");
 
         sprintf(output_path, "Resultados/command%d_output.txt", counter++);
-        output_file = fopen(output_path, "a");
+        output_struct->Type.fp = fopen(output_path, "a");
 
         va_start(args, max_args); // Reset argument list
-        handle_query(output_file, fields, args);
+        handle_query(output_struct, fields, args);
 
-        fclose(output_file);
+        fclose(output_struct->Type.fp);
         free(fields[0]);
         free(fields);
     }
@@ -89,5 +109,20 @@ void parse_query(char *query_path, int max_args, ...) {
     va_end(args); // This is ok assuming the input file is not empty
     free(line);
     free(output_path);
+    free(output_struct);
     fclose(input_file);
+}
+
+Output_Type parse_query_interactive(char *input, int max_args, va_list args)
+{
+    char **fields = malloc(sizeof(char *) * max_args);
+    parse_line(input, fields, " ");
+    Output_Type output_struct = new_output_struct(true);
+
+    handle_query(output_struct, fields, args);
+
+    free(fields[0]);
+    free(fields);
+
+    return output_struct;
 }
