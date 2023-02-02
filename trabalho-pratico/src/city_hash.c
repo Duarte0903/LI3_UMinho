@@ -2,8 +2,7 @@
 #include <string.h>
 #include "../includes/city_hash.h"
 
-typedef enum city_index
-{
+typedef enum city_index {
     BRAGA = 0,
     COIMBRA = 1,
     FARO = 2,
@@ -13,94 +12,70 @@ typedef enum city_index
     VILA_REAL = 6
 } City_Index;
 
-int city_hash(char *city)
-{ // variation of djb2 string hash function to hash the cities of Portugal
+int city_hash(char *city) { // variation of djb2 string hash function to hash the cities of Portugal
     uint64_t result = 5381;
     unsigned char *p = (unsigned char *)city;
 
     while (*p)
         result = ((result << 5) ^ result) ^ (*p++);
 
-    return result % 89;
+    return result % 97;
 }
 
 /*
 City values:
-Aveiro => 60
-Beja => 79
-Braga => 74
-Bragança => 30
+Aveiro => 33
+Beja => 49
+Braga => 96
+Bragança => 8
 Castelo branco => 11
-Coimbra => 46
-Évora => 17
-Faro => 82
-Guarda => 48
-Leiria => 22
-Lisboa => 6
-Portalegre => 21
+Coimbra => 65
+Évora => 38
+Faro => 22
+Guarda => 80
+Leiria => 82
+Lisboa => 3
+Portalegre => 61
 Porto => 73
-Santarém => 56
-Setúbal => 25
-Viana do castelo => 15
-Vila real => 51
-Viseu => 14
+Santarém => 31
+Setúbal => 41
+Viana do castelo => 7
+Vila real => 2
+Viseu => 35
 */
 
-int get_city_index(char *city)
-{
+int get_city_index(char *city) {
     int hash = city_hash(city);
 
     int result = -1;
 
-    switch (hash)
-    {
-    case 74:
-        if (!strcmp("Braga", city))
-        {
-            result = BRAGA;
-        }
+    switch (hash) {
+    case 96:
+        result = BRAGA;
         break;
 
-    case 46:
-        if (!strcmp("Coimbra", city))
-        {
-            result = COIMBRA;
-        }
+    case 65:
+        result = COIMBRA;
         break;
 
-    case 82:
-        if (!strcmp("Faro", city))
-        {
-            result = FARO;
-        }
+    case 22:
+        result = FARO;
         break;
 
-    case 6:
-        if (!strcmp("Lisboa", city))
-        {
-            result = LISBOA;
-        }
+    case 3:
+        result = LISBOA;
         break;
 
     case 73:
-        if (!strcmp("Porto", city))
-        {
-            result = PORTO;
-        }
+        result = PORTO;
         break;
 
-    case 25:
-        if (!strcmp("Setúbal", city))
-        {
-            result = SETUBAL;
-        }
+    case 41:
+        result = SETUBAL;
         break;
 
-    case 51:
-        if (!strcmp("Vila real", city))
-        {
-            result = VILA_REAL;
-        }
+    case 2:
+        result = VILA_REAL;
         break;
     }
 
