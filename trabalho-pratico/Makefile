@@ -9,10 +9,10 @@ BUILD := release
 # Compiler
 CC = gcc
 
-# Flags
-FLAGS.release = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla -pedantic-errors -Wfatal-errors -flto -O2 -march=native -mtune=native -lncursesw
-FLAGS.sanitizer = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla -pedantic-errors -Wfatal-errors -g -fsanitize=address -lncursesw
-FLAGS.debug = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla -pedantic-errors -Wfatal-errors -O0 -g -lncursesw
+# Flags (-march=native on release) 
+FLAGS.release = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla -pedantic-errors -Wfatal-errors -flto -O2 -mtune=native
+FLAGS.sanitizer = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla -pedantic-errors -Wfatal-errors -g -fsanitize=address
+FLAGS.debug = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla -pedantic-errors -Wfatal-errors -O0 -g
 FLAGS := $(FLAGS.$(BUILD))
 
 # Makefile Flags
@@ -34,7 +34,7 @@ HEADERS = $(call rwildcard,includes,*.h)
 OBJS = $(SRCS:src/%.c=$(OBJ_DIR)/%.o) #$(SRCS:.c=.o)
 
 # Other stuff to compile with
-LIBS = -lm -lglib-2.0
+LIBS = -lm -lglib-2.0 -lncursesw
 INCLUDES = -Iincludes
 PKG_CONFIG = `pkg-config --cflags --libs glib-2.0`
 MAIN_TARGET = programa-principal
