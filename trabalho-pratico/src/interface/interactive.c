@@ -247,7 +247,11 @@ void display_query_results(WINDOW *border_win, char *input, ...)
             }
             wclear(win);
             print_page(win, (-output_lines) * y_setter, 0, output_lines, output_struct->Type.str);
+
+            move(LINES / 4 - 1, COLS / 4);
+            clrtoeol();
             mvprintw(LINES / 4 - 1, COLS / 4, "%d of %d", y_setter + 1, n_pages);
+            mvprintw(LINES / 4 - 1, 3 * COLS / 4 - strlen("Use the arrow keys"), "Use the arrow keys");
             refresh();
             break;
         case KEY_LEFT:
@@ -258,7 +262,11 @@ void display_query_results(WINDOW *border_win, char *input, ...)
             }
             wclear(win);
             print_page(win, (-output_lines) * y_setter, 0, output_lines, output_struct->Type.str);
+
+            move(LINES / 4 - 1, COLS / 4);
+            clrtoeol();
             mvprintw(LINES / 4 - 1, COLS / 4, "%d of %d", y_setter + 1, n_pages);
+            mvprintw(LINES / 4 - 1, 3 * COLS / 4 - strlen("Use the arrow keys"), "Use the arrow keys");
             refresh();
             break;
         case 10:
