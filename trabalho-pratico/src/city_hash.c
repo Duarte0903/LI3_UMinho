@@ -1,7 +1,9 @@
 #include <stdint.h>
+#include <string.h>
 #include "../includes/city_hash.h"
 
-typedef enum city_index {
+typedef enum city_index
+{
     BRAGA = 0,
     COIMBRA = 1,
     FARO = 2,
@@ -11,7 +13,8 @@ typedef enum city_index {
     VILA_REAL = 6
 } City_Index;
 
-int city_hash(char *city) { // variation of djb2 string hash function to hash the cities of Portugal
+int city_hash(char *city)
+{ // variation of djb2 string hash function to hash the cities of Portugal
     uint64_t result = 5381;
     unsigned char *p = (unsigned char *)city;
 
@@ -43,38 +46,61 @@ Vila real => 51
 Viseu => 14
 */
 
-int get_city_index(char *city) {
+int get_city_index(char *city)
+{
     int hash = city_hash(city);
 
     int result = -1;
 
-    switch (hash) {
+    switch (hash)
+    {
     case 74:
-        result = BRAGA;
+        if (!strcmp("Braga", city))
+        {
+            result = BRAGA;
+        }
         break;
 
     case 46:
-        result = COIMBRA;
+        if (!strcmp("Coimbra", city))
+        {
+            result = COIMBRA;
+        }
         break;
 
     case 82:
-        result = FARO;
+        if (!strcmp("Faro", city))
+        {
+            result = FARO;
+        }
         break;
 
     case 6:
-        result = LISBOA;
+        if (!strcmp("Lisboa", city))
+        {
+            result = LISBOA;
+        }
         break;
 
     case 73:
-        result = PORTO;
+        if (!strcmp("Porto", city))
+        {
+            result = PORTO;
+        }
         break;
 
     case 25:
-        result = SETUBAL;
+        if (!strcmp("Setúbal", city))
+        {
+            result = SETUBAL;
+        }
         break;
 
     case 51:
-        result = VILA_REAL;
+        if (!strcmp("Vila real", city))
+        {
+            result = VILA_REAL;
+        }
         break;
     }
 

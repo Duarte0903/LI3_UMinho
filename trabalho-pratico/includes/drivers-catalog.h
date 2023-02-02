@@ -30,6 +30,8 @@ char *get_driver_q1(char *id, Drivers_Catalog catalog);
 
 char *get_q2(int n_drivers, Drivers_Catalog catalog);
 
+char *get_q7(int n_drivers, char *city, Drivers_Catalog catalog);
+
 void free_drivers_catalog(Drivers_Catalog catalog);
 
 #endif
