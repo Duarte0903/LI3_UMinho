@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <stdarg.h>
+#include <stdbool.h>
+#include <time.h>
 #include "../includes/users-catalog.h"
 #include "../includes/user.h"
 #include "../includes/utils.h"
@@ -12,10 +14,7 @@
 typedef struct users_catalog {
     GPtrArray *users_array;
     GHashTable *users_ht;
-    enum sort_mode {
-        UNSORTED,
-        DISTANCE
-    } sort_mode;
+    bool is_sorted;
 } *Users_Catalog;
 
 void glib_wrapper_free_user(gpointer user) {
@@ -27,7 +26,7 @@ Users_Catalog create_users_catalog() {
 
     catalog->users_array = g_ptr_array_new_full(100000, NULL);
     catalog->users_ht = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, glib_wrapper_free_user);
-    catalog->sort_mode = UNSORTED;
+    catalog->is_sorted = false;
 
     return catalog;
 }
@@ -64,7 +63,7 @@ void update_user_stats(char *username, VPA *stats, Users_Catalog catalog) { // I
     set_user_stats(user, stats);
 }
 
-char *get_user_gender_username(char *username, Users_Catalog catalog) {
+char get_user_gender_username(char *username, Users_Catalog catalog) {
     User user = g_hash_table_lookup(catalog->users_ht, username);
     return get_user_gender(user);
 }
@@ -120,9 +119,13 @@ static gint compare_users_by_distance(gconstpointer u1, gconstpointer u2) {
 }
 
 void sort_users_by_distance(Users_Catalog catalog) {
-    if (catalog->sort_mode != DISTANCE) {
+    if (!catalog->is_sorted) {
+        clock_t start_sort = clock();
         g_ptr_array_sort(catalog->users_array, compare_users_by_distance);
-        catalog->sort_mode = DISTANCE;
+        clock_t end_sort = clock();
+        double time_sort = (double)(end_sort - start_sort) / CLOCKS_PER_SEC;
+        printf("Users sorted in %f seconds\n", time_sort);
+        catalog->is_sorted = true;
     }
 }
 
@@ -138,23 +141,24 @@ char *get_user_q1(char *username, Users_Catalog catalog) { // change function an
         return NULL;
 
     char *name = get_user_name(user);
-    char *gender = get_user_gender(user);
+    char gender = get_user_gender(user);
     char *age = get_user_age(user);
     double average_rating = get_user_average_rating(user);
     unsigned short total_rides = get_user_total_rides(user);
     double total_spent = get_user_total_spent_money(user);
 
-    char *user_str = malloc(strlen(name) + strlen(gender) + strlen(age) + 5 + 10 + 10 + 5 + 2); // 5 de rating, 10 de total_rides, 10 de money, 5 dos ;, 2 do \n e \0
-    sprintf(user_str, "%s;%s;%s;%.3f;%hu;%.3f\n", name, gender, age, average_rating, total_rides, total_spent);
+    char *user_str = malloc(strlen(name) + strlen(age) + 1 + 5 + 10 + 10 + 5 + 2); // 1 gender + 5 de rating, 10 de total_rides, 10 de money, 5 dos ;, 2 do \n e \0
+    sprintf(user_str, "%s;%c;%s;%.3f;%hu;%.3f\n", name, gender, age, average_rating, total_rides, total_spent);
 
     free(name);
-    free(gender);
     free(age);
 
     return user_str;
 }
 
 char *get_q3(int n_users, Users_Catalog catalog) { // change function name
+    sort_users_by_distance(catalog);
+    
     if (n_users > (int)catalog->users_array->len)
         n_users = catalog->users_array->len;
 

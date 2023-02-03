@@ -9,8 +9,8 @@ BUILD := release
 # Compiler
 CC = gcc
 
-# Flags (-march=native on release) 
-FLAGS.release = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla -pedantic-errors -Wfatal-errors -flto -O2 -mtune=native
+# Flags (-march=native on release)
+FLAGS.release = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla -pedantic-errors -Wfatal-errors -flto -O3 -mtune=native
 FLAGS.sanitizer = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla -pedantic-errors -Wfatal-errors -g -fsanitize=address
 FLAGS.debug = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla -pedantic-errors -Wfatal-errors -O0 -g
 FLAGS := $(FLAGS.$(BUILD))
@@ -27,6 +27,10 @@ DATA_DIR :=
 TEST_DIR :=
 INPUT :=
 MODE := NULL
+
+# Valgrind stuff
+VALGRIND_DATA := datasets/valgrind-dataset
+VALGRIND_INPUT := inputs/valgrind-input.txt
 
 # Get sources, headers and object files
 SRCS = $(call rwildcard,src,*.c)
@@ -122,7 +126,7 @@ run: $(MAIN_TARGET)
 	@if [ $(words $(MAKECMDGOALS)) -eq 1 ]; then \
 		if [ -n "$(strip $(DATA_DIR))" ]; then \
 			printf "%b" "$(COMPILING_COLOR)Running batch mode with $(DATA_DIR) ...$(NO_COLOR)\n"; \
-			./$< $(DATA_DIR) $(INPUT); \
+			/usr/bin/time -v ./$< $(DATA_DIR) $(INPUT); \
 			printf "%b" "$(COMPILING_COLOR)Done!$(NO_COLOR)\n"; \
 		else \
 			printf "%b" "$(COMPILING_COLOR)Dataset is not defined!$(NO_COLOR)\n"; \
@@ -181,7 +185,7 @@ valgrind:
 	fi
 	@printf "%b" "$(COMPILING_COLOR)Building debug mode!$(NO_COLOR)\n\n"
 	@make BUILD=debug
-	@valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all -s ./$(MAIN_TARGET) $(DATA_DIR) $(INPUT)
+	@valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all -s ./$(MAIN_TARGET) $(VALGRIND_DATA) $(VALGRIND_INPUT)
 
 # Remove the object directory (and its contents), main-program and test-unit (if it exists) and clean path variables
 .PHONY: clean

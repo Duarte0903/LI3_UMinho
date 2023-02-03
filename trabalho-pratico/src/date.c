@@ -20,7 +20,7 @@ char *convert_date_to_string(Date d) { // test new format
     char year[5];
     sprintf(day, "%02d", d.d);
     sprintf(month, "%02d", d.m);
-    sprintf(year, "%02d", d.y);
+    sprintf(year, "%d", d.y);
 
     size_t size = strlen(day) + strlen(month) + strlen(year) + 3;
     char *result = malloc(size);

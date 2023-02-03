@@ -4,28 +4,25 @@
 #include "../includes/ride.h"
 #include "../includes/date.h"
 #include "../includes/utils.h"
+#include "../includes/city_hash.h"
 
 typedef struct ride {
-    char *id;
+    unsigned int id;
     unsigned short date;
-    char *driver_id;
+    unsigned int driver_id;
     char *user;
-    char *city;
+    unsigned short city;
     unsigned short distance;
     unsigned short score_user;
     unsigned short score_driver;
     double tip;
-    // stats
     double cost;
 } *Ride;
 
 Ride init_ride() {
     Ride ride = malloc(sizeof(struct ride));
 
-    ride->id = NULL;
-    ride->driver_id = NULL;
     ride->user = NULL;
-    ride->city = NULL;
     ride->cost = 0.0;
 
     return ride;
@@ -34,37 +31,37 @@ Ride init_ride() {
 Ride create_ride(char **fields) {
     Ride ride = init_ride();
 
-    ride->id = strdup(fields[0]);
+    ride->id = str_to_int(fields[0]);
     ride->date = date_to_int(fields[1]);
-    ride->driver_id = strdup(fields[2]);
+    ride->driver_id = str_to_int(fields[2]);
     ride->user = strdup(fields[3]);
-    ride->city = strdup(fields[4]);
-    ride->distance = (unsigned short)str_to_int(fields[5]);
-    ride->score_user = (unsigned short)str_to_int(fields[6]);
-    ride->score_driver = (unsigned short)str_to_int(fields[7]);
+    ride->city = get_city_index(fields[4]);
+    ride->distance = str_to_int(fields[5]);
+    ride->score_user = str_to_int(fields[6]);
+    ride->score_driver = str_to_int(fields[7]);
     ride->tip = str_to_double(fields[8]);
 
     return ride;
 }
 
-char *get_ride_id(Ride ride) {
-    return strdup(ride->id);
+unsigned int get_ride_id(Ride ride) {
+    return ride->id;
 }
 
 unsigned short get_ride_date(Ride ride) {
     return ride->date;
 }
 
-char *get_ride_driver_id(Ride ride) {
-    return strdup(ride->driver_id);
+unsigned int get_ride_driver_id(Ride ride) {
+    return ride->driver_id;
 }
 
 char *get_ride_user(Ride ride) {
     return strdup(ride->user);
 }
 
-char *get_ride_city(Ride ride) {
-    return strdup(ride->city);
+unsigned short get_ride_city(Ride ride) {
+    return ride->city;
 }
 
 unsigned short get_ride_user_score(Ride ride) {
@@ -92,9 +89,6 @@ void set_ride_cost(Ride ride, double cost) {
 }
 
 void free_ride(Ride ride) {
-    free(ride->id);
-    free(ride->driver_id);
     free(ride->user);
-    free(ride->city);
     free(ride);
 }

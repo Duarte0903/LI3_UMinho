@@ -81,3 +81,39 @@ int get_city_index(char *city) {
 
     return result;
 }
+
+char *get_city_str(int index) {
+    char *result;
+
+    switch (index) {
+    case BRAGA:
+        result = "Braga";
+        break;
+
+    case COIMBRA:
+        result = "Coimbra";
+        break;
+
+    case FARO:
+        result = "Faro";
+        break;
+
+    case LISBOA:
+        result = "Lisboa";
+        break;
+
+    case PORTO:
+        result = "Porto";
+        break;
+
+    case SETUBAL:
+        result = "Setúbal";
+        break;
+
+    case VILA_REAL:
+        result = "Vila real";
+        break;
+    }
+
+    return result;
+}

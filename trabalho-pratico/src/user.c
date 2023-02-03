@@ -13,15 +13,14 @@
 typedef struct user {
     char *username;
     char *name;
-    char *gender;
     unsigned short birth_date;
     unsigned short account_creation;
+    char gender;
     bool account_status;
-
     struct user_stats {
         unsigned int total_rating;
-        unsigned short total_rides;
         double total_spent_money;
+        unsigned short total_rides;
         unsigned short total_distance;
         unsigned short latest_ride;
         unsigned short account_age;
@@ -33,7 +32,6 @@ User init_user() {
 
     user->username = NULL;
     user->name = NULL;
-    user->gender = NULL;
     user->account_status = true;
     user->stats.total_rating = 0;
     user->stats.total_rides = 0;
@@ -50,7 +48,7 @@ User create_user(char **fields) {
 
     user->username = strdup(fields[0]);
     user->name = strdup(fields[1]);
-    user->gender = strdup(fields[2]);
+    user->gender = fields[2][0];
     user->birth_date = date_to_int(fields[3]);
     user->account_creation = date_to_int(fields[4]);
     user->stats.account_age = date_to_int(REF_DAY) - user->account_creation;
@@ -69,8 +67,8 @@ char *get_user_name(User user) {
     return strdup(user->name);
 }
 
-char *get_user_gender(User user) {
-    return strdup(user->gender);
+char get_user_gender(User user) {
+    return user->gender;
 }
 
 char *get_user_age(User user) {
@@ -125,6 +123,5 @@ void set_user_stats(User user, VPA *stats) {
 void free_user(User user) {
     free(user->username);
     free(user->name);
-    free(user->gender);
     free(user);
 }
