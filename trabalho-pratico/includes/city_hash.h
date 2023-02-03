@@ -3,4 +3,6 @@
 
 int get_city_index(char *city);
 
+char *get_city_str(int index);
+
 #endif

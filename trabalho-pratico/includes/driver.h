@@ -8,11 +8,11 @@ typedef struct driver *Driver;
 
 Driver create_driver(char **fields);
 
-char *get_driver_id(Driver driver);
+unsigned int get_driver_id(Driver driver);
 
 char *get_driver_name(Driver driver);
 
-char *get_driver_gender(Driver driver);
+char get_driver_gender(Driver driver);
 
 char *get_driver_age(Driver driver);
 

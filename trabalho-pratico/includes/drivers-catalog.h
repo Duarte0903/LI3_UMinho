@@ -12,17 +12,17 @@ int is_valid_driver(char **fields);
 
 void insert_driver_in_catalog(char **fields, va_list args);
 
-void update_driver_stats(char *driver_id, VPA *stats, Drivers_Catalog catalog);
+void update_driver_stats(unsigned int driver_id, VPA *stats, Drivers_Catalog catalog);
 
-char *get_ride_car_class(char *driver_id, Drivers_Catalog catalog);
+char *get_ride_car_class(unsigned int driver_id, Drivers_Catalog catalog);
 
-char *get_driver_name_id(char *driver_id, Drivers_Catalog catalog);
+char *get_driver_name_id(unsigned int driver_id, Drivers_Catalog catalog);
 
-char *get_driver_gender_id(char *id, Drivers_Catalog catalog);
+char get_driver_gender_id(unsigned int driver_id, Drivers_Catalog catalog);
 
-bool get_driver_account_status_id(char *driver_id, Drivers_Catalog catalog);
+bool get_driver_account_status_id(unsigned int driver_id, Drivers_Catalog catalog);
 
-unsigned short get_driver_account_age_w_id(char *driver_id, Drivers_Catalog catalog);
+unsigned short get_driver_account_age_w_id(unsigned int driver_id, Drivers_Catalog catalog);
 
 char *get_driver_q1(char *id, Drivers_Catalog catalog);
 

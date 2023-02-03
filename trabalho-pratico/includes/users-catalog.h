@@ -16,7 +16,7 @@ void update_user_stats(char *username, VPA *stats, Users_Catalog catalog);
 
 unsigned short get_user_account_age_w_username(char *username, Users_Catalog catalog);
 
-char *get_user_gender_username(char *username, Users_Catalog catalog);
+char get_user_gender_username(char *username, Users_Catalog catalog);
 
 char *get_user_name_username(char *username, Users_Catalog catalog);
 

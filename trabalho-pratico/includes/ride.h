@@ -5,15 +5,15 @@ typedef struct ride *Ride;
 
 Ride create_ride(char **fields);
 
-char *get_ride_id(Ride ride);
+unsigned int get_ride_id(Ride ride);
 
 unsigned short get_ride_date(Ride ride);
 
-char *get_ride_driver_id(Ride ride);
+unsigned int get_ride_driver_id(Ride ride);
 
 char *get_ride_user(Ride ride);
 
-char *get_ride_city(Ride ride);
+unsigned short get_ride_city(Ride ride);
 
 unsigned short get_ride_user_score(Ride ride);
 

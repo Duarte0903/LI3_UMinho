@@ -10,7 +10,7 @@ BUILD := release
 CC = gcc
 
 # Flags (-march=native on release)
-FLAGS.release = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla -pedantic-errors -Wfatal-errors -flto -O2 -mtune=native
+FLAGS.release = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla -pedantic-errors -Wfatal-errors -flto -O3 -mtune=native
 FLAGS.sanitizer = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla -pedantic-errors -Wfatal-errors -g -fsanitize=address
 FLAGS.debug = -Wall -Wextra -Wdouble-promotion -Werror=pedantic -Werror=vla -pedantic-errors -Wfatal-errors -O0 -g
 FLAGS := $(FLAGS.$(BUILD))
@@ -23,10 +23,10 @@ OBJ_DIR := build
 RESULT_DIR := Resultados
 
 # Paths
-DATA_DIR :=
-TEST_DIR :=
-INPUT :=
-MODE := NULL
+DATA_DIR := datasets/small-invalid-dataset
+TEST_DIR := tests/si-outputs
+INPUT := inputs/si-input.txt
+MODE := SI
 
 # Get sources, headers and object files
 SRCS = $(call rwildcard,src,*.c)

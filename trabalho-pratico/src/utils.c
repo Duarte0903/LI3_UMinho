@@ -33,7 +33,7 @@ char *get_file(char *path, const char *file) {
 int is_positive_integer(char *str) {
     char *end_ptr = str;
     errno = 0;
-    unsigned long value = -1;
+    unsigned long value = 0;
 
     if (strchr(str, '-') == NULL)
         value = strtoul(str, &end_ptr, 10);

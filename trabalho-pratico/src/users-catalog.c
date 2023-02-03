@@ -62,7 +62,7 @@ void update_user_stats(char *username, VPA *stats, Users_Catalog catalog) { // I
     set_user_stats(user, stats);
 }
 
-char *get_user_gender_username(char *username, Users_Catalog catalog) {
+char get_user_gender_username(char *username, Users_Catalog catalog) {
     User user = g_hash_table_lookup(catalog->users_ht, username);
     return get_user_gender(user);
 }
@@ -136,17 +136,16 @@ char *get_user_q1(char *username, Users_Catalog catalog) { // change function an
         return NULL;
 
     char *name = get_user_name(user);
-    char *gender = get_user_gender(user);
+    char gender = get_user_gender(user);
     char *age = get_user_age(user);
     double average_rating = get_user_average_rating(user);
     unsigned short total_rides = get_user_total_rides(user);
     double total_spent = get_user_total_spent_money(user);
 
-    char *user_str = malloc(strlen(name) + strlen(gender) + strlen(age) + 5 + 10 + 10 + 5 + 2); // 5 de rating, 10 de total_rides, 10 de money, 5 dos ;, 2 do \n e \0
-    sprintf(user_str, "%s;%s;%s;%.3f;%hu;%.3f\n", name, gender, age, average_rating, total_rides, total_spent);
+    char *user_str = malloc(strlen(name) + strlen(age) + 1 + 5 + 10 + 10 + 5 + 2); // 1 gender + 5 de rating, 10 de total_rides, 10 de money, 5 dos ;, 2 do \n e \0
+    sprintf(user_str, "%s;%c;%s;%.3f;%hu;%.3f\n", name, gender, age, average_rating, total_rides, total_spent);
 
     free(name);
-    free(gender);
     free(age);
 
     return user_str;

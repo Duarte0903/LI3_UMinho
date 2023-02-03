@@ -12,7 +12,7 @@ char *get_user_username(User user);
 
 char *get_user_name(User user);
 
-char *get_user_gender(User user);
+char get_user_gender(User user);
 
 char *get_user_age(User user);
 

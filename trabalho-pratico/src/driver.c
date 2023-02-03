@@ -12,19 +12,18 @@
 #define REF_DAY "9/10/2022"
 
 typedef struct driver {
-    char *id;
+    unsigned int id;
     char *name;
     unsigned short birth_date;
-    char *gender;
-    char *car_class;
     unsigned short account_creation;
+    char *car_class;
+    char gender;
     bool account_status;
-
     struct driver_stats {
-        GPtrArray *ratings;
         double total_earned_money;
         unsigned short latest_ride;
         unsigned short account_age;
+        GPtrArray *ratings;
     } stats;
 } *Driver;
 
@@ -50,9 +49,7 @@ void init_driver_ratings(GPtrArray *ratings_arr, int capacity) {
 Driver init_driver() {
     Driver driver = malloc(sizeof(struct driver));
 
-    driver->id = NULL;
     driver->name = NULL;
-    driver->gender = NULL;
     driver->car_class = NULL;
     driver->account_status = true;
     driver->stats.ratings = g_ptr_array_new_full(8, g_free);
@@ -67,10 +64,10 @@ Driver init_driver() {
 Driver create_driver(char **fields) {
     Driver driver = init_driver();
 
-    driver->id = strdup(fields[0]);
+    driver->id = str_to_int(fields[0]);
     driver->name = strdup(fields[1]);
     driver->birth_date = date_to_int(fields[2]);
-    driver->gender = strdup(fields[3]);
+    driver->gender = fields[3][0];
     driver->car_class = lower_string(strdup(fields[4]));
     driver->account_creation = date_to_int(fields[7]);
     driver->stats.account_age = date_to_int(REF_DAY) - driver->account_creation;
@@ -81,20 +78,20 @@ Driver create_driver(char **fields) {
     return driver;
 }
 
-char *get_driver_id(Driver driver) {
-    return strdup(driver->id);
+unsigned int get_driver_id(Driver driver) {
+    return driver->id;
 }
 
 char *get_driver_name(Driver driver) {
     return strdup(driver->name);
 }
 
-char *get_driver_age(Driver driver) {
-    return get_age(driver->birth_date);
+char get_driver_gender(Driver driver) {
+    return driver->gender;
 }
 
-char *get_driver_gender(Driver driver) {
-    return strdup(driver->gender);
+char *get_driver_age(Driver driver) {
+    return get_age(driver->birth_date);
 }
 
 char *get_driver_car_class(Driver driver) {
@@ -133,7 +130,7 @@ unsigned short get_driver_account_age(Driver driver) {
 
 void set_driver_stats(Driver driver, VPA *stats) {
     unsigned short driver_score = *(unsigned short *)vpa_get(stats, 0);
-    int index = *(int *)vpa_get(stats, 1);
+    unsigned short index = *(unsigned short *)vpa_get(stats, 1);
     Driver_Ratings ratings = g_ptr_array_index(driver->stats.ratings, index);
     ratings->rating += driver_score;
     ratings->rides++;
@@ -151,10 +148,10 @@ void set_driver_stats(Driver driver, VPA *stats) {
 }
 
 void free_driver(Driver driver) {
-    free(driver->id);
-    free(driver->name);
-    free(driver->gender);
-    free(driver->car_class);
-    g_ptr_array_free(driver->stats.ratings, TRUE);
-    free(driver);
+    if (driver) {
+        free(driver->name);
+        free(driver->car_class);
+        g_ptr_array_free(driver->stats.ratings, TRUE);
+        free(driver);
+    }
 }

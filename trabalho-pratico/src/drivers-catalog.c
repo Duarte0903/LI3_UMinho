@@ -13,8 +13,9 @@
 #include "../includes/city_hash.h"
 
 typedef struct drivers_catalog {
-    GHashTable *drivers_ht;
+    GPtrArray *drivers_array;
     GPtrArray *drivers_average_rating_arrays;
+    unsigned int last_inserted_id;
 } *Drivers_Catalog;
 
 typedef struct drivers_in_city {
@@ -53,9 +54,10 @@ void init_drivers_in_city(GPtrArray *arr, int capacity) {
 
 Drivers_Catalog create_drivers_catalog() {
     Drivers_Catalog catalog = malloc(sizeof(struct drivers_catalog));
-    catalog->drivers_ht = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, glib_wrapper_free_driver);
+    catalog->drivers_array = g_ptr_array_new_full(10000, glib_wrapper_free_driver);
     catalog->drivers_average_rating_arrays = g_ptr_array_new_full(8, glib_wrapper_free_drivers_in_city);
     init_drivers_in_city(catalog->drivers_average_rating_arrays, 8);
+    catalog->last_inserted_id = -1;
     return catalog;
 }
 
@@ -90,39 +92,46 @@ int is_valid_driver(char **fields) {
 void insert_driver_in_catalog(char **fields, va_list args) {
     Drivers_Catalog catalog = va_arg(args, Drivers_Catalog);
     Driver driver = create_driver(fields);
-    char *key = get_driver_id(driver);
-    add_driver_to_arrays(catalog->drivers_average_rating_arrays, driver, 8);
+    unsigned int id = get_driver_id(driver);
 
-    g_hash_table_insert(catalog->drivers_ht, key, driver);
+    if (id != catalog->last_inserted_id + 1) {
+        for (unsigned int i = catalog->last_inserted_id + 1; i < id; i++) {
+            g_ptr_array_add(catalog->drivers_array, NULL);
+        }
+    }
+
+    g_ptr_array_add(catalog->drivers_array, driver);
+    catalog->last_inserted_id = id;
+    add_driver_to_arrays(catalog->drivers_average_rating_arrays, driver, 8);
 }
 
-void update_driver_stats(char *driver_id, VPA *stats, Drivers_Catalog catalog) { // Improve function after input validation
-    Driver driver = g_hash_table_lookup(catalog->drivers_ht, driver_id);
+void update_driver_stats(unsigned int driver_id, VPA *stats, Drivers_Catalog catalog) {
+    Driver driver = g_ptr_array_index(catalog->drivers_array, driver_id);
     set_driver_stats(driver, stats);
 }
 
-char *get_ride_car_class(char *driver_id, Drivers_Catalog catalog) {
-    Driver driver = g_hash_table_lookup(catalog->drivers_ht, driver_id);
+char *get_ride_car_class(unsigned int driver_id, Drivers_Catalog catalog) {
+    Driver driver = g_ptr_array_index(catalog->drivers_array, driver_id);
     return get_driver_car_class(driver);
 }
 
-char *get_driver_name_id(char *driver_id, Drivers_Catalog catalog) {
-    Driver driver = g_hash_table_lookup(catalog->drivers_ht, driver_id);
+char *get_driver_name_id(unsigned int driver_id, Drivers_Catalog catalog) {
+    Driver driver = g_ptr_array_index(catalog->drivers_array, driver_id);
     return get_driver_name(driver);
 }
 
-char *get_driver_gender_id(char *id, Drivers_Catalog catalog) {
-    Driver driver = g_hash_table_lookup(catalog->drivers_ht, id);
+char get_driver_gender_id(unsigned int driver_id, Drivers_Catalog catalog) {
+    Driver driver = g_ptr_array_index(catalog->drivers_array, driver_id);
     return get_driver_gender(driver);
 }
 
-bool get_driver_account_status_id(char *driver_id, Drivers_Catalog catalog) {
-    Driver driver = g_hash_table_lookup(catalog->drivers_ht, driver_id);
+bool get_driver_account_status_id(unsigned int driver_id, Drivers_Catalog catalog) {
+    Driver driver = g_ptr_array_index(catalog->drivers_array, driver_id);
     return get_driver_account_status(driver);
 }
 
-unsigned short get_driver_account_age_w_id(char *driver_id, Drivers_Catalog catalog) {
-    Driver driver = g_hash_table_lookup(catalog->drivers_ht, driver_id);
+unsigned short get_driver_account_age_w_id(unsigned int driver_id, Drivers_Catalog catalog) {
+    Driver driver = g_ptr_array_index(catalog->drivers_array, driver_id);
     return get_driver_account_age(driver);
 }
 
@@ -157,11 +166,9 @@ static gint compare_drivers_by_average_rating(gconstpointer d1, gconstpointer d2
     else if ((!nearly_equal && average_rating1 > average_rating2) || (nearly_equal && date1 > date2))
         result = -1;
     else {
-        char *driver_id1 = get_driver_id(driver1);
-        char *driver_id2 = get_driver_id(driver2);
-        result = strcmp(driver_id1, driver_id2);
-        free(driver_id1);
-        free(driver_id2);
+        unsigned int driver_id1 = get_driver_id(driver1);
+        unsigned int driver_id2 = get_driver_id(driver2);
+        result = (driver_id1 < driver_id2) ? -1 : (driver_id1 > driver_id2);
     }
 
     return result;
@@ -185,8 +192,8 @@ static gint compare_drivers_by_average_rating_in_city(gconstpointer d1, gconstpo
 
     int index = GPOINTER_TO_INT(city_index_ptr);
 
-    char *driver_id1 = get_driver_id(driver1);
-    char *driver_id2 = get_driver_id(driver2);
+    unsigned int driver_id1 = get_driver_id(driver1);
+    unsigned int driver_id2 = get_driver_id(driver2);
 
     double driver_average_rating1 = get_driver_average_rating(driver1, index);
     double driver_average_rating2 = get_driver_average_rating(driver2, index);
@@ -199,10 +206,7 @@ static gint compare_drivers_by_average_rating_in_city(gconstpointer d1, gconstpo
     else if (!nearly_equal && driver_average_rating1 > driver_average_rating2)
         result = -1;
     else
-        result = -strcmp(driver_id1, driver_id2);
-
-    free(driver_id1);
-    free(driver_id2);
+        result = (driver_id1 > driver_id2) ? -1 : (driver_id1 < driver_id2);
 
     return result;
 }
@@ -216,23 +220,27 @@ void sort_drivers_by_average_rating(Drivers_Catalog catalog) {
 }
 
 char *get_driver_q1(char *id, Drivers_Catalog catalog) { // change function and output variable name
-    Driver driver = g_hash_table_lookup(catalog->drivers_ht, id);
+    unsigned int driver_id = str_to_int(id);
+
+    if (driver_id > (unsigned int)catalog->drivers_array->len)
+        return NULL;
+
+    Driver driver = g_ptr_array_index(catalog->drivers_array, driver_id);
 
     if (!driver || !get_driver_account_status(driver))
         return NULL;
 
     char *name = get_driver_name(driver);
-    char *gender = get_driver_gender(driver);
+    char gender = get_driver_gender(driver);
     char *age = get_driver_age(driver);
     double average_rating = get_driver_average_rating(driver, 7);
     unsigned short total_rides = get_driver_total_rides(driver);
     double total_earned = get_driver_total_earned_money(driver);
 
-    char *driver_str = malloc(strlen(name) + strlen(gender) + strlen(age) + 5 + 10 + 10 + 5 + 2); // 5 de rating, 10 de total_rides, 10 de money, 5 dos ;, 2 do \n e \0
-    sprintf(driver_str, "%s;%s;%s;%.3f;%hu;%.3f\n", name, gender, age, average_rating, total_rides, total_earned);
+    char *driver_str = malloc(strlen(name) + strlen(age) + 1 + 5 + 10 + 10 + 5 + 2); // 1 gender + 5 de rating, 10 de total_rides, 10 de money, 5 dos ;, 2 do \n e \0
+    sprintf(driver_str, "%s;%c;%s;%.3f;%hu;%.3f\n", name, gender, age, average_rating, total_rides, total_earned);
 
     free(name);
-    free(gender);
     free(age);
 
     return driver_str;
@@ -252,11 +260,10 @@ char *get_q2(int n_drivers, Drivers_Catalog catalog) {
 
     for (int i = 0; i < n_drivers; i++) {
         Driver driver = g_ptr_array_index(drivers_in_city->drivers_by_city, i);
-        char *driver_id = get_driver_id(driver);
+        unsigned int driver_id = get_driver_id(driver);
         char *name = get_driver_name(driver);
         double average_rating = get_driver_average_rating(driver, 7);
-        fprintf(stream, "%s;%s;%0.3f\n", driver_id, name, average_rating);
-        free(driver_id);
+        fprintf(stream, "%012u;%s;%0.3f\n", driver_id, name, average_rating);
         free(name);
     }
 
@@ -285,11 +292,10 @@ char *get_q7(int n_drivers, char *city, Drivers_Catalog catalog) {
 
     for (int i = 0; i < n_drivers; i++) {
         Driver driver = g_ptr_array_index(drivers_in_city->drivers_by_city, i);
-        char *id = get_driver_id(driver);
+        unsigned int id = get_driver_id(driver);
         char *name = get_driver_name(driver);
         double average_rating = get_driver_average_rating(driver, city_index);
-        fprintf(stream, "%s;%s;%.3f\n", id, name, average_rating);
-        free(id);
+        fprintf(stream, "%012u;%s;%.3f\n", id, name, average_rating);
         free(name);
     }
 
@@ -299,7 +305,7 @@ char *get_q7(int n_drivers, char *city, Drivers_Catalog catalog) {
 }
 
 void free_drivers_catalog(Drivers_Catalog catalog) {
-    g_hash_table_destroy(catalog->drivers_ht);
+    g_ptr_array_free(catalog->drivers_array, TRUE);
     g_ptr_array_free(catalog->drivers_average_rating_arrays, TRUE);
     free(catalog);
 }
