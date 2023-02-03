@@ -23,12 +23,8 @@ int nearly_equal_fp_numbers(double f1, double f2, double epsilon);
 
 char *lower_string(char *str);
 
-int first_occurrence_ptr_array_bsearch(GPtrArray *array, GCompareFunc compare_func, void *target, int search_bigger_nearest);
+int first_occurrence_ptr_array_bsearch(GPtrArray *array, GCompareDataFunc compare_func, gpointer target, int search_bigger_nearest, gpointer extra_data);
 
-int last_occurrence_ptr_array_bsearch(GPtrArray *array, GCompareFunc compare_func, void *target, int search_smaller_nearest);
-
-int first_occurrence_ptr_array_bsearch_with_data(GPtrArray *array, GCompareDataFunc compare_func, void *target, int search_smaller_nearest, gpointer extra_data);
-
-int last_occurrence_ptr_array_bsearch_with_data(GPtrArray *array, GCompareDataFunc compare_func, void *target, int search_smaller_nearest, gpointer extra_data);
+int last_occurrence_ptr_array_bsearch(GPtrArray *array, GCompareDataFunc compare_func, gpointer target, int search_smaller_nearest, gpointer extra_data);
 
 #endif

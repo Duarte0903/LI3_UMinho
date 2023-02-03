@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include "../includes/users-catalog.h"
 #include "../includes/user.h"
 #include "../includes/utils.h"
@@ -12,10 +13,7 @@
 typedef struct users_catalog {
     GPtrArray *users_array;
     GHashTable *users_ht;
-    enum sort_mode {
-        UNSORTED,
-        DISTANCE
-    } sort_mode;
+    bool is_sorted;
 } *Users_Catalog;
 
 void glib_wrapper_free_user(gpointer user) {
@@ -27,7 +25,7 @@ Users_Catalog create_users_catalog() {
 
     catalog->users_array = g_ptr_array_new_full(100000, NULL);
     catalog->users_ht = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, glib_wrapper_free_user);
-    catalog->sort_mode = UNSORTED;
+    catalog->is_sorted = false;
 
     return catalog;
 }
@@ -120,9 +118,9 @@ static gint compare_users_by_distance(gconstpointer u1, gconstpointer u2) {
 }
 
 void sort_users_by_distance(Users_Catalog catalog) {
-    if (catalog->sort_mode != DISTANCE) {
+    if (!catalog->is_sorted) {
         g_ptr_array_sort(catalog->users_array, compare_users_by_distance);
-        catalog->sort_mode = DISTANCE;
+        catalog->is_sorted = true;
     }
 }
 
@@ -155,6 +153,8 @@ char *get_user_q1(char *username, Users_Catalog catalog) { // change function an
 }
 
 char *get_q3(int n_users, Users_Catalog catalog) { // change function name
+    sort_users_by_distance(catalog);
+    
     if (n_users > (int)catalog->users_array->len)
         n_users = catalog->users_array->len;
 

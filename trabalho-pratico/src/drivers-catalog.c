@@ -53,7 +53,6 @@ void init_drivers_in_city(GPtrArray *arr, int capacity) {
 
 Drivers_Catalog create_drivers_catalog() {
     Drivers_Catalog catalog = malloc(sizeof(struct drivers_catalog));
-
     catalog->drivers_ht = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, glib_wrapper_free_driver);
     catalog->drivers_average_rating_arrays = g_ptr_array_new_full(8, glib_wrapper_free_drivers_in_city);
     init_drivers_in_city(catalog->drivers_average_rating_arrays, 8);
@@ -149,7 +148,7 @@ static gint compare_drivers_by_average_rating(gconstpointer d1, gconstpointer d2
     double average_rating2 = get_driver_average_rating(driver2, 7);
     unsigned short date2 = get_driver_latest_ride(driver2);
 
-    int nearly_equal = nearly_equal_fp_numbers(average_rating1, average_rating2, 0.00001f);
+    int nearly_equal = nearly_equal_fp_numbers(average_rating1, average_rating2, 0.000001);
     int result;
     // Descending order: average rating, date
     // Ascending order: driver_id
@@ -192,7 +191,7 @@ static gint compare_drivers_by_average_rating_in_city(gconstpointer d1, gconstpo
     double driver_average_rating1 = get_driver_average_rating(driver1, index);
     double driver_average_rating2 = get_driver_average_rating(driver2, index);
 
-    int nearly_equal = nearly_equal_fp_numbers(driver_average_rating1, driver_average_rating2, 0.00001f);
+    int nearly_equal = nearly_equal_fp_numbers(driver_average_rating1, driver_average_rating2, 0.000001);
     int result;
 
     if (!nearly_equal && driver_average_rating1 < driver_average_rating2)
@@ -208,8 +207,7 @@ static gint compare_drivers_by_average_rating_in_city(gconstpointer d1, gconstpo
     return result;
 }
 
-void sort_drivers_by_average_rating(Drivers_Catalog catalog) // empty string if is total average rating
-{
+void sort_drivers_by_average_rating(Drivers_Catalog catalog) {
     Drivers_In_City drivers_in_city = g_ptr_array_index(catalog->drivers_average_rating_arrays, 7);
     if (!drivers_in_city->is_sorted) {
         g_ptr_array_sort(drivers_in_city->drivers_by_city, compare_drivers_by_average_rating);
@@ -241,7 +239,8 @@ char *get_driver_q1(char *id, Drivers_Catalog catalog) { // change function and 
 }
 
 char *get_q2(int n_drivers, Drivers_Catalog catalog) {
-
+    sort_drivers_by_average_rating(catalog);
+    
     Drivers_In_City drivers_in_city = g_ptr_array_index(catalog->drivers_average_rating_arrays, 7); // 7 is total average rating
 
     if (n_drivers > (int)drivers_in_city->drivers_by_city->len)
@@ -250,21 +249,19 @@ char *get_q2(int n_drivers, Drivers_Catalog catalog) {
     char *result = NULL;
     size_t result_size = 0;
     FILE *stream = open_memstream(&result, &result_size);
-    char *driver_id = NULL, *name = NULL;
-    double average_rating;
 
     for (int i = 0; i < n_drivers; i++) {
         Driver driver = g_ptr_array_index(drivers_in_city->drivers_by_city, i);
-        driver_id = get_driver_id(driver);
-        name = get_driver_name(driver);
-        average_rating = get_driver_average_rating(driver, 7);
+        char *driver_id = get_driver_id(driver);
+        char *name = get_driver_name(driver);
+        double average_rating = get_driver_average_rating(driver, 7);
         fprintf(stream, "%s;%s;%0.3f\n", driver_id, name, average_rating);
         free(driver_id);
         free(name);
     }
 
     fclose(stream);
-
+    
     return result;
 }
 
@@ -297,6 +294,7 @@ char *get_q7(int n_drivers, char *city, Drivers_Catalog catalog) {
     }
 
     fclose(stream);
+
     return result;
 }
 

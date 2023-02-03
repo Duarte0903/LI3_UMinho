@@ -11,8 +11,6 @@ void insert_ride_in_catalog(char **fields, va_list args);
 
 void sort_rides_by_date(Rides_Catalog catalog);
 
-void sort_rides_by_city(Rides_Catalog catalog);
-
 char *get_q4(char *city, Rides_Catalog catalog);
 
 char *get_q5(unsigned short start_date, unsigned short end_date, Rides_Catalog catalog);
