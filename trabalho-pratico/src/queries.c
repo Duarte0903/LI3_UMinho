@@ -37,7 +37,7 @@ void print_q1(Output_Type output_struct, char **fields, va_list args) {
     clock_t end = clock();
     double time = (double)(end - start) / CLOCKS_PER_SEC;
     if (!output_struct->interactive)
-        printf("Finished Q1 in %.2f seconds\n", time);
+        printf("Finished Q1 in %f seconds\n", time);
 }
 
 void print_q2(Output_Type output_struct, char **fields, va_list args) {
@@ -63,7 +63,7 @@ void print_q2(Output_Type output_struct, char **fields, va_list args) {
     clock_t end = clock();
     double time = (double)(end - start) / CLOCKS_PER_SEC;
     if (!output_struct->interactive)
-        printf("Finished Q2 in %.2f seconds\n", time);
+        printf("Finished Q2 in %f seconds\n", time);
 }
 
 void print_q3(Output_Type output_struct, char **fields, va_list args) {
@@ -87,7 +87,7 @@ void print_q3(Output_Type output_struct, char **fields, va_list args) {
     clock_t end = clock();
     double time = (double)(end - start) / CLOCKS_PER_SEC;
     if (!output_struct->interactive)
-        printf("Finished Q3 in %.2f seconds\n", time);
+        printf("Finished Q3 in %f seconds\n", time);
 }
 
 void print_q4(Output_Type output_struct, char **fields, va_list args) {
@@ -111,7 +111,7 @@ void print_q4(Output_Type output_struct, char **fields, va_list args) {
     clock_t end = clock();
     double time = (double)(end - start) / CLOCKS_PER_SEC;
     if (!output_struct->interactive)
-        printf("Finished Q4 in %.2f seconds\n", time);
+        printf("Finished Q4 in %f seconds\n", time);
 }
 
 void print_q5(Output_Type output_struct, char **fields, va_list args) {
@@ -139,7 +139,7 @@ void print_q5(Output_Type output_struct, char **fields, va_list args) {
     clock_t end = clock();
     double time = (double)(end - start) / CLOCKS_PER_SEC;
     if (!output_struct->interactive)
-        printf("Finished Q5 in %.2f seconds\n", time);
+        printf("Finished Q5 in %f seconds\n", time);
 }
 
 void print_q6(Output_Type output_struct, char **fields, va_list args) {
@@ -168,7 +168,7 @@ void print_q6(Output_Type output_struct, char **fields, va_list args) {
     clock_t end = clock();
     double time = (double)(end - start) / CLOCKS_PER_SEC;
     if (!output_struct->interactive)
-        printf("Finished Q6 in %.2f seconds\n", time);
+        printf("Finished Q6 in %f seconds\n", time);
 }
 
 void print_q7(Output_Type output_struct, char **fields, va_list args) {
@@ -197,7 +197,7 @@ void print_q7(Output_Type output_struct, char **fields, va_list args) {
     clock_t end = clock();
     double time = (double)(end - start) / CLOCKS_PER_SEC;
     if (!output_struct->interactive)
-        printf("Finished Q7 in %.2f seconds\n", time);
+        printf("Finished Q7 in %f seconds\n", time);
 }
 
 void print_q8(Output_Type output_struct, char **fields, va_list args) {
@@ -227,7 +227,7 @@ void print_q8(Output_Type output_struct, char **fields, va_list args) {
     clock_t end = clock();
     double time = (double)(end - start) / CLOCKS_PER_SEC;
     if (!output_struct->interactive)
-        printf("Finished Q8 in %.2f seconds\n", time);
+        printf("Finished Q8 in %f seconds\n", time);
 }
 
 void print_q9(Output_Type output_struct, char **fields, va_list args) {
@@ -255,7 +255,7 @@ void print_q9(Output_Type output_struct, char **fields, va_list args) {
     clock_t end = clock();
     double time = (double)(end - start) / CLOCKS_PER_SEC;
     if (!output_struct->interactive)
-        printf("Finished Q9 in %.2f seconds\n", time);
+        printf("Finished Q9 in %f seconds\n", time);
 }
 
 void handle_query(Output_Type output_struct, char **fields, va_list args) {

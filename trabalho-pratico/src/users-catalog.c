@@ -4,6 +4,7 @@
 #include <strings.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <time.h>
 #include "../includes/users-catalog.h"
 #include "../includes/user.h"
 #include "../includes/utils.h"
@@ -119,7 +120,11 @@ static gint compare_users_by_distance(gconstpointer u1, gconstpointer u2) {
 
 void sort_users_by_distance(Users_Catalog catalog) {
     if (!catalog->is_sorted) {
+        clock_t start_sort = clock();
         g_ptr_array_sort(catalog->users_array, compare_users_by_distance);
+        clock_t end_sort = clock();
+        double time_sort = (double)(end_sort - start_sort) / CLOCKS_PER_SEC;
+        printf("Users sorted in %f seconds\n", time_sort);
         catalog->is_sorted = true;
     }
 }

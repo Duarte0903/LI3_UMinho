@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <strings.h>
 #include <string.h>
+#include <time.h>
 #include "../includes/drivers-catalog.h"
 #include "../includes/driver.h"
 #include "../includes/utils.h"
@@ -214,7 +215,22 @@ static gint compare_drivers_by_average_rating_in_city(gconstpointer d1, gconstpo
 void sort_drivers_by_average_rating(Drivers_Catalog catalog) {
     Drivers_In_City drivers_in_city = g_ptr_array_index(catalog->drivers_average_rating_arrays, 7);
     if (!drivers_in_city->is_sorted) {
+        clock_t start_sort = clock();
         g_ptr_array_sort(drivers_in_city->drivers_by_city, compare_drivers_by_average_rating);
+        clock_t end_sort = clock();
+        double time_sort = (double)(end_sort - start_sort) / CLOCKS_PER_SEC;
+        printf("Drivers sorted in %f seconds\n", time_sort);
+        drivers_in_city->is_sorted = true;
+    }
+}
+
+void sort_drivers_in_city(Drivers_In_City drivers_in_city, int city_index) {
+    if (!drivers_in_city->is_sorted) {
+        clock_t start_city_sort = clock();
+        g_ptr_array_sort_with_data(drivers_in_city->drivers_by_city, compare_drivers_by_average_rating_in_city, GINT_TO_POINTER(city_index));
+        clock_t end_city_sort = clock();
+        double time_city_sort = (double)(end_city_sort - start_city_sort) / CLOCKS_PER_SEC;
+        printf("Drivers in %s city sorted in %f seconds\n", get_city_str(city_index), time_city_sort);
         drivers_in_city->is_sorted = true;
     }
 }
@@ -274,14 +290,13 @@ char *get_q2(int n_drivers, Drivers_Catalog catalog) {
 
 char *get_q7(int n_drivers, char *city, Drivers_Catalog catalog) {
     int city_index = get_city_index(city);
+    
     if (city_index == -1)
         return NULL;
 
     Drivers_In_City drivers_in_city = g_ptr_array_index(catalog->drivers_average_rating_arrays, city_index);
-    if (!drivers_in_city->is_sorted) {
-        g_ptr_array_sort_with_data(drivers_in_city->drivers_by_city, compare_drivers_by_average_rating_in_city, GINT_TO_POINTER(city_index));
-        drivers_in_city->is_sorted = true;
-    }
+
+    sort_drivers_in_city(drivers_in_city, city_index);
 
     if (n_drivers > (int)drivers_in_city->drivers_by_city->len)
         n_drivers = drivers_in_city->drivers_by_city->len;

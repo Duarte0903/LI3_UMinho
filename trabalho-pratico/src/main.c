@@ -18,6 +18,7 @@
 
 int main(int argc, char **argv) {
     if (argc == 3) {
+        clock_t start_execution = clock();
         char *data_path = argv[1];
         char *query_path = argv[2];
 
@@ -33,19 +34,19 @@ int main(int argc, char **argv) {
         parse_file(users_file, N_USER_FIELDS, is_valid_user, insert_user_in_catalog, users_catalog);
         clock_t end_users = clock();
         double time_users = (double)(end_users - start_users) / CLOCKS_PER_SEC;
-        printf("Users loaded in %.2f seconds\n", time_users);
-        
+        printf("Users loaded in %f seconds\n", time_users);
+
         clock_t start_drivers = clock();
         parse_file(drivers_file, N_DRIVER_FIELDS, is_valid_driver, insert_driver_in_catalog, drivers_catalog);
         clock_t end_drivers = clock();
         double time_drivers = (double)(end_drivers - start_drivers) / CLOCKS_PER_SEC;
-        printf("Drivers loaded in %.2f seconds\n", time_drivers);
-        
+        printf("Drivers loaded in %f seconds\n", time_drivers);
+
         clock_t start_rides = clock();
         parse_file(rides_file, N_RIDE_FIELDS, is_valid_ride, insert_ride_in_catalog, rides_catalog, users_catalog, drivers_catalog);
         clock_t end_rides = clock();
         double time_rides = (double)(end_rides - start_rides) / CLOCKS_PER_SEC;
-        printf("Rides loaded in %.2f seconds\n", time_rides);
+        printf("Rides loaded in %f seconds\n", time_rides);
 
         parse_query(query_path, MAX_QUERY_ARGS, users_catalog, drivers_catalog, rides_catalog);
 
@@ -55,13 +56,13 @@ int main(int argc, char **argv) {
         free(users_file);
         free(drivers_file);
         free(rides_file);
-    }
-    else
-    {
+        clock_t end_execution = clock();
+        double time_execution = (double)(end_execution - start_execution) / CLOCKS_PER_SEC;
+        printf("Program executed in %f seconds\n", time_execution);
+    } else {
         char *data_path = choose_dataset();
 
-        if (!data_path)
-        {
+        if (!data_path) {
             endwin();
             printf("No dataset selected.\nExiting interactive mode.\n");
             return 1;
