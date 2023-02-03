@@ -44,21 +44,6 @@ void delete_window(WINDOW *win)
     delwin(win);
 }
 
-void clear_window_contents(WINDOW *win)
-{
-    int rows, cols;
-    getmaxyx(win, rows, cols);
-
-    for (int row = 1; row < rows - 1; row++)
-    {
-        for (int col = 1; col < cols - 1; col++)
-        {
-            mvwaddch(win, row, col, ' ');
-        }
-    }
-    wrefresh(win);
-}
-
 void print_page(WINDOW *win, int starty, int startx, int output_lines, char *str)
 {
     char *ptr = str;

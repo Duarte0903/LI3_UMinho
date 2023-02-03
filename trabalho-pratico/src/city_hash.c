@@ -83,7 +83,7 @@ int get_city_index(char *city) {
 }
 
 char *get_city_str(int index) {
-    char *result;
+    char *result = NULL;
 
     switch (index) {
     case BRAGA:
