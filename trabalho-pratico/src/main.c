@@ -16,8 +16,10 @@
 #define MAX_QUERY_ARGS 4
 #define N_CATALOGS 3
 
-int main(int argc, char **argv) {
-    if (argc == 3) {
+int main(int argc, char **argv)
+{
+    if (argc == 3)
+    {
         clock_t start_execution = clock();
         char *data_path = argv[1];
         char *query_path = argv[2];
@@ -59,20 +61,23 @@ int main(int argc, char **argv) {
         clock_t end_execution = clock();
         double time_execution = (double)(end_execution - start_execution) / CLOCKS_PER_SEC;
         printf("Program executed in %f seconds\n", time_execution);
-    } else {
-        char *data_path = choose_dataset();
-
-        if (!data_path) {
-            endwin();
-            printf("No dataset selected.\nExiting interactive mode.\n");
-            return 1;
-        }
+    }
+    else
+    {
+        char *data_path = get_dataset();
 
         print_waiting_on_catalogs();
 
         char *users_file = get_file(data_path, "/users.csv");
         char *drivers_file = get_file(data_path, "/drivers.csv");
         char *rides_file = get_file(data_path, "/rides.csv");
+
+        if (!file_exists(users_file) || !file_exists(drivers_file) || !file_exists(rides_file))
+        {
+            endwin();
+            printf("Wrong path or incomplete folder.\n");
+            return 1;
+        }
 
         Users_Catalog users_catalog = create_users_catalog();
         Drivers_Catalog drivers_catalog = create_drivers_catalog();
@@ -82,7 +87,7 @@ int main(int argc, char **argv) {
         parse_file(drivers_file, N_DRIVER_FIELDS, is_valid_driver, insert_driver_in_catalog, drivers_catalog);
         parse_file(rides_file, N_RIDE_FIELDS, is_valid_ride, insert_ride_in_catalog, rides_catalog, users_catalog, drivers_catalog);
 
-        launch_main_interface(N_CATALOGS, users_catalog, drivers_catalog, rides_catalog);
+        launch_main_interface(N_CATALOGS, users_catalog, drivers_catalog, rides_catalog, users_file, drivers_file, rides_file);
 
         free(data_path);
         free_users_catalog(users_catalog);
