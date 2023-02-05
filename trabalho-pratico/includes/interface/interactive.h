@@ -1,7 +1,11 @@
 #ifndef INTERACTIVE_H
 #define INTERACTIVE_H
 
-char *choose_dataset();
+#include <stdbool.h>
+
+bool file_exists(const char *filename);
+
+char *get_dataset();
 
 void print_waiting_on_catalogs();
 
