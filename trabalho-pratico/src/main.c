@@ -72,6 +72,8 @@ int main(int argc, char **argv)
         char *drivers_file = get_file(data_path, "/drivers.csv");
         char *rides_file = get_file(data_path, "/rides.csv");
 
+        free(data_path);
+
         if (!file_exists(users_file) || !file_exists(drivers_file) || !file_exists(rides_file))
         {
             endwin();
@@ -89,7 +91,6 @@ int main(int argc, char **argv)
 
         launch_main_interface(N_CATALOGS, users_catalog, drivers_catalog, rides_catalog, users_file, drivers_file, rides_file);
 
-        free(data_path);
         free_users_catalog(users_catalog);
         free_drivers_catalog(drivers_catalog);
         free_rides_catalog(rides_catalog);

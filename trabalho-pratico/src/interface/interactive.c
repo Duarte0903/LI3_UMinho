@@ -66,18 +66,18 @@ char *get_dataset() // starts ncurses on main
     int input_lines = getmaxy(win);
     wmove(win, input_lines / 2, 3);
 
-    char *real_path = malloc(500 * sizeof(char));
-    char *input = malloc(500 * sizeof(char));
+    char *path_buffer = malloc(PATH_MAX * sizeof(char));
+    char *input = malloc(PATH_MAX * sizeof(char));
 
     wgetstr(win, input);
 
-    realpath(input, real_path);
+    char *path = realpath(input, path_buffer);
 
     clear();
     delete_window(win);
     free(input);
 
-    return real_path;
+    return path;
 }
 
 void print_waiting_on_catalogs() // sets noecho()
@@ -258,8 +258,12 @@ void print_dataset(char *path)
     clear();
     refresh();
 
-    WINDOW *border = create_newwin(LINES - LINES / 12, COLS - COLS / 12, LINES / 24, COLS / 24);
-    WINDOW *output_window = newwin(LINES - LINES / 12 - 2, COLS - COLS / 12 - 2, LINES / 24 + 1, COLS / 24 + 1);
+    WINDOW *border_win = create_newwin(LINES - LINES / 12, COLS - COLS / 12, LINES / 24, COLS / 24);
+
+    int border_lines, border_cols;
+    getmaxyx(border_win, border_lines, border_cols);
+
+    WINDOW *output_window = newwin(border_lines - 2, border_cols - 2, LINES / 24 + 1, COLS / 24 + 1);
 
     FILE *fp = fopen(path, "r");
 
@@ -268,7 +272,10 @@ void print_dataset(char *path)
     ssize_t nread;
     nread = getline(&field_names, &len, fp);
 
-    field_names[strcspn(field_names,"\n")] = '\0';
+    if (nread == -1)
+        return;
+
+    field_names[strcspn(field_names, "\n")] = '\0';
 
     int output_lines = getmaxy(output_window);
     int lines = 0;
